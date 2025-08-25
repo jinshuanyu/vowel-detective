@@ -572,7 +572,17 @@ const playResultWordAudio = (word, id) => {
         // This getUserMedia will now run after the initial request on the homepage
         // If permission was granted, it will resolve immediately without a prompt.
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorderRef.current = new MediaRecorder(stream);
+        // iOS 優先 mp4/AAC，其他瀏覽器退回 webm/opus
+const preferredMime =
+  (window.MediaRecorder && MediaRecorder.isTypeSupported('audio/mp4;codecs=mp4a.40.2')) ? 'audio/mp4;codecs=mp4a.40.2' :
+  (window.MediaRecorder && MediaRecorder.isTypeSupported('audio/mp4')) ? 'audio/mp4' :
+  (window.MediaRecorder && MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) ? 'audio/webm;codecs=opus' :
+  '';
+
+mediaRecorderRef.current = preferredMime
+  ? new MediaRecorder(stream, { mimeType: preferredMime })
+  : new MediaRecorder(stream);
+
         audioChunksRef.current = [];
 
         mediaRecorderRef.current.ondataavailable = (event) => {
