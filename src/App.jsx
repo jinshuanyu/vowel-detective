@@ -367,14 +367,7 @@ const [resultAudioPlayingId, setResultAudioPlayingId] = useState(null);
     setCurrentRoundWord(wordToPlay);
     setOptions(shuffleArray([wordToPlay, otherWord]));
   };
-// 不支援 Web Speech API 時，拋出可辨識的錯誤碼
-if (typeof window === 'undefined' ||
-    !('speechSynthesis' in window) ||
-    typeof window.SpeechSynthesisUtterance === 'undefined') {
-  const err = new Error('TTS_UNSUPPORTED');
-  err.code = 'TTS_UNSUPPORTED';
-  throw err;
-}
+
   // Web Speech API 的語音合成函數
   const speakText = (text, lang = 'en-US') => {
     return new Promise((resolve, reject) => {
@@ -437,14 +430,8 @@ const playResultWordAudio = (word, id) => {
     try {
       await speakText(text, 'en-US'); // 播放單字
     } catch (error) {
-  console.error("使用 Web Speech API 播放遊戲單字音檔時出錯：", error);
-  var code = (error && error.code) || (error && error.message) || '';
-  setFeedbackMessage(
-    code === 'TTS_UNSUPPORTED'
-      ? '此瀏覽器不支援語音播放，請改用 Safari 或 Chrome 開啟（避免 FB/IG/LINE 內建瀏覽器）。'
-      : '音檔播放失敗，請重試。'
-  );
-
+      console.error("使用 Web Speech API 播放遊戲單字音檔時出錯：", error);
+      setFeedbackMessage("音檔播放失敗，請重試。");
       setFeedbackClass('text-red-500');
     } finally {
       setAudioLoading(false); // 隱藏載入中旋轉圖示
