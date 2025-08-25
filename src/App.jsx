@@ -437,12 +437,13 @@ const playResultWordAudio = (word, id) => {
     try {
       await speakText(text, 'en-US'); // 播放單字
     } catch (error) {
-      console.error("使用 Web Speech API 播放遊戲單字音檔時出錯：", error);
-setFeedbackMessage(
-  (err?.code === 'TTS_UNSUPPORTED' || err?.message === 'TTS_UNSUPPORTED')
-    ? '此瀏覽器不支援語音播放，請改用 Safari 或 Chrome 開啟（避免 FB/IG/LINE 內建瀏覽器）。'
-    : '音檔播放失敗，請重試。'
-);
+  console.error("使用 Web Speech API 播放遊戲單字音檔時出錯：", error);
+  var code = (error && error.code) || (error && error.message) || '';
+  setFeedbackMessage(
+    code === 'TTS_UNSUPPORTED'
+      ? '此瀏覽器不支援語音播放，請改用 Safari 或 Chrome 開啟（避免 FB/IG/LINE 內建瀏覽器）。'
+      : '音檔播放失敗，請重試。'
+  );
 
       setFeedbackClass('text-red-500');
     } finally {
