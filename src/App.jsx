@@ -735,7 +735,8 @@ const audioBlob = new Blob(audioChunksRef.current, { type: chosenType });
     // 移除所有會導致裁剪或衝突的 min-h-screen/flex 屬性。
     // 高度將完全由其內容決定，且它會水平居中。
     // 已更新 max-w-* 類別，為手機提供更寬的卡片。
-    <div className="bg-[#f0ebd8] p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl w-full text-center border-4 border-[#3e5c76] max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-2xl mx-auto flex flex-col items-center">
+    <div className="bg-[#f0ebd8] p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl w-[calc(100%-24px)] sm:w-[calc(100%-32px)] text-center border-4 border-[#3e5c76] max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-2xl mx-auto flex flex-col items-center">
+
       <h1 className="text-4xl font-extrabold text-[#1d2d44] mb-2 font-inter">
         🔍母音偵探<br/>
         <span className="text-2xl">Vowel Detective 👂🏻</span> {/* 字體大小縮小，添加 emoji */}
