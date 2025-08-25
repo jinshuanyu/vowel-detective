@@ -367,7 +367,14 @@ const [resultAudioPlayingId, setResultAudioPlayingId] = useState(null);
     setCurrentRoundWord(wordToPlay);
     setOptions(shuffleArray([wordToPlay, otherWord]));
   };
-
+// 不支援 Web Speech API 時，拋出可辨識的錯誤碼
+if (typeof window === 'undefined' ||
+    !('speechSynthesis' in window) ||
+    typeof window.SpeechSynthesisUtterance === 'undefined') {
+  const err = new Error('TTS_UNSUPPORTED');
+  err.code = 'TTS_UNSUPPORTED';
+  throw err;
+}
   // Web Speech API 的語音合成函數
   const speakText = (text, lang = 'en-US') => {
     return new Promise((resolve, reject) => {
