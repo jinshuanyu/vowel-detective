@@ -590,7 +590,9 @@ mediaRecorderRef.current = preferredMime
         };
 
         mediaRecorderRef.current.onstop = () => {
-          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' }); // WebM is commonly supported
+          const chosenType = (mediaRecorderRef.current && mediaRecorderRef.current.mimeType) || preferredMime || 'audio/webm';
+const audioBlob = new Blob(audioChunksRef.current, { type: chosenType });
+ // WebM is commonly supported
           const url = URL.createObjectURL(audioBlob);
           setRecordedAudioMap(prevMap => ({ ...prevMap, [wordToRecord]: url }));
           setRecordingWord(null);
