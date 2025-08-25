@@ -44,16 +44,16 @@ const englishToChinese = {
   'men': '男人們', 'man': '男人',
   'bet': '打賭', 'bat': '蝙蝠/球棒',
   'net': '網子', 'gnat': '小飛蟲',
-  'set': '設定', 'sat': '坐下（過去式）',
+  'set': '設定', 'sat': '坐下了',
   'pet': '寵物', 'pat': '輕拍',
   'den': '獸穴', 'Dan': '人名',
-  'led': '領導（過去式）', 'lad': '小伙子',
+  'led': '引導了', 'lad': '小伙子',
   'rad': '激進的',
   'bed': '床', 'bad': '壞的',
   'send': '寄送', 'sand': '沙子',
   'lend': '借出', 'land': '土地',
   'fed': '餵食',
-  'met': '遇見（過去式）',
+  'met': '遇見了',
   'mat': '墊子',
   'peck': '啄', 'pack': '包裹',
   'Ed': '人名',
@@ -438,7 +438,12 @@ const playResultWordAudio = (word, id) => {
       await speakText(text, 'en-US'); // 播放單字
     } catch (error) {
       console.error("使用 Web Speech API 播放遊戲單字音檔時出錯：", error);
-      setFeedbackMessage("音檔播放失敗，請重試。");
+setFeedbackMessage(
+  (err?.code === 'TTS_UNSUPPORTED' || err?.message === 'TTS_UNSUPPORTED')
+    ? '此瀏覽器不支援語音播放，請改用 Safari 或 Chrome 開啟（避免 FB/IG/LINE 內建瀏覽器）。'
+    : '音檔播放失敗，請重試。'
+);
+
       setFeedbackClass('text-red-500');
     } finally {
       setAudioLoading(false); // 隱藏載入中旋轉圖示
