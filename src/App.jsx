@@ -744,7 +744,7 @@ const audioBlob = new Blob(audioChunksRef.current, { type: chosenType });
       {gameMode === null ? ( // 初始狀態：顯示模式選擇
         <div className="flex flex-col space-y-4">
           {/* 調整字體大小為 text-2xl */}
-          <p className="text-2xl text-[#3e5c76] mt-1 mb-2">破解最容易搞混的英語母音！</p> 
+          <p className="text-2xl text-[#3e5c76] mt-1 mb-2">破解最容易搞混的母音！</p> 
 
           {/* 「發音範例」區塊 */}
           {/* 字體大小改為 text-xl，添加 font-bold */}
