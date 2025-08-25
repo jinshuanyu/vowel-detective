@@ -5,42 +5,12 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vowel Detective</title>
-    <!-- Tailwind 快速樣式 -->
+    <!-- （可留可不留）Tailwind CDN；之後若用本地建置可再移除 -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts - Inter (確保字體載入) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
-<style>
-  /* 確保 html 和 body 佔滿整個視窗空間，並移除預設邊距/填充 */
-  html, body {
-    height: 100%; /* 強制高度為視窗的 100% */
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box; /* 確保 padding 和 border 不會增加元素總尺寸 */
-    font-family: 'Inter', sans-serif; /* 設定頁面預設字體 */
-    overflow-x: hidden; /* 防止水平捲軸 */
-  }
-
-  /* body 作為頁面唯一的頂層佈局管理器 */
-  body {
-    display: flex;           /* 啟用彈性盒子佈局 */
-    flex-direction: column;  /* 將子元素 (即 #root) 垂直堆疊 */
-    align-items: center;     /* **水平居中**其內容 (即 #root) */
-    justify-content: flex-start; /* **關鍵修改：垂直對齊內容到頂部，徹底解決裁剪** */
-    min-height: 100vh;       /* 確保 body 至少佔滿整個視窗高度 */
-    background: #f0ebd8;     /* 與 React 應用程式的背景色保持一致 */
-    color: #1d2d44;          /* 設定頁面預設文字顏色 */
-    overflow-y: auto;        /* 允許 body 內容垂直滾動 */
-    padding: 1rem 0;         /* 在 body 上添加垂直 padding，為整個 app 提供一些上下間距 */
-  }
-
-  /* #root 僅作為 React 應用程式的掛載點，不施加任何佈局限制 */
-  #root {
-    width: 100%;            /* 佔滿 body 的所有可用寬度 */
-    /* 移除所有 flexbox 和高度設定，讓 React 應用程式本身控制其內容 */
-  }
-</style></head>
+  </head>
   <body>
     <div id="root"></div>
+    <!-- ⚠️ 正確寫法：開發時指向 /src/main.jsx，正式版會被 Vite 自動改成 /vowel-detective/assets/... -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
