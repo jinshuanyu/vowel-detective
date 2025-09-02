@@ -619,7 +619,6 @@ const audioBlob = new Blob(audioChunksRef.current, { type: chosenType });
     const stopRecording = () => {
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
         mediaRecorderRef.current.stop();
-
       }
     };
 
