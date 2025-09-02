@@ -736,7 +736,8 @@ const audioBlob = new Blob(audioChunksRef.current, { type: chosenType });
     // 高度將完全由其內容決定，且它會水平居中。
     // 已更新 max-w-* 類別，為手機提供更寬的卡片。
     <div className="w-full flex justify-center px-4 sm:px-6"> {/* 新增 */}
-    <div className="bg-[#f0ebd8] p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl w-full text-center border-4 border-[#3e5c76] max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-2xl mx-auto flex flex-col items-center">
+<div className="bg-[#f0ebd8] p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl w-full text-center border-4 border-[#3e5c76] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl 2xl:max-w-3xl mx-auto flex flex-col items-center">
+
 
 
       <h1 className="text-4xl font-extrabold text-[#1d2d44] mb-2 font-inter">
@@ -826,7 +827,8 @@ const audioBlob = new Blob(audioChunksRef.current, { type: chosenType });
           <h2 className="text-3xl font-bold text-[#1d2d44] mt-6 mb-4 drop-shadow-md">
             題目回顧
           </h2>
-          <div className="bg-[#f0ebd8] rounded-xl shadow-lg p-4 md:p-6 overflow-x-auto mx-auto max-w-2xl">
+   <div className="bg-[#f0ebd8] rounded-xl shadow-lg p-4 md:p-6 overflow-x-auto mx-auto w-full">
+
 
             <table className="min-w-full text-left text-lg">
   <thead>
