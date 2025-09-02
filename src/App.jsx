@@ -731,6 +731,7 @@ const audioBlob = new Blob(audioChunksRef.current, { type: chosenType });
 
 
   return (
+    <div className="w-full flex justify-center px-4 sm:px-6"> {/* 新增 */}
     // React 應用程式最外層的 div，它直接就是視覺上的「卡片」。
     // 移除所有會導致裁剪或衝突的 min-h-screen/flex 屬性。
     // 高度將完全由其內容決定，且它會水平居中。
@@ -825,7 +826,8 @@ const audioBlob = new Blob(audioChunksRef.current, { type: chosenType });
           <h2 className="text-3xl font-bold text-[#1d2d44] mt-6 mb-4 drop-shadow-md">
             題目回顧
           </h2>
-          <div className="bg-[#f0ebd8] rounded-xl shadow-lg p-4 md:p-6 overflow-x-auto mx-auto max-w-xl">
+          <div className="bg-[#f0ebd8] rounded-xl shadow-lg p-4 md:p-6 overflow-x-auto mx-auto max-w-2xl">
+
             <table className="min-w-full text-left text-lg">
   <thead>
     <tr className="bg-[#3e5c76] text-white">
@@ -1052,6 +1054,7 @@ const audioBlob = new Blob(audioChunksRef.current, { type: chosenType });
         </>
       )}
     </div>
+      </div> 
   );
 };
 
