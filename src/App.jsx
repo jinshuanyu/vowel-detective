@@ -732,8 +732,9 @@ const playResultWordAudio = (word, id) => {
 
   return (
     // <!-- 修改：最外層容器，用於置中 -->
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-100">
-    <div className="w-full max-w-[720px] bg-[#f0ebd8] border-4 border-[#3e5c76] rounded-2xl shadow-xl p-4 sm:p-6 md:p-8 text-center">
+    <div className="w-full min-h-screen flex justify-center items-center p-4 bg-gray-100">
+        {/* <!-- 修改：卡片容器，設定桌機最大寬度為 720px --> */}
+        <div className="bg-[#f0ebd8] p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl w-full text-center border-4 border-[#3e5c76] max-w-md md:max-w-[720px] flex flex-col items-center">
 
             <h1 className="text-4xl font-extrabold text-[#1d2d44] mb-2 font-inter">
                 🔍母音偵探<br/>
