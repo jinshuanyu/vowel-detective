@@ -2,6 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as Tone from 'tone'; // 導入 Tone.js
 // 語音合成已切換回使用瀏覽器內建的 Web Speech API，不需外部 SDK。
 
+// ---- iOS 檢測 ----
+const isIOS =
+  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
 // Chinese translations for English words in the minimal pairs
 const englishToChinese = {
   'sheep': '綿羊', 'ship': '大船',
@@ -62,7 +67,7 @@ const englishToChinese = {
   'leg': '腿', 'lag': '落後'
 };
 
-// IPA Transcriptions for each word based on American English (from user's prompt)
+// IPA Transcriptions for each word based on American English
 const wordToIPA = {
   'sheep': '/ʃip/', 'ship': '/ʃɪp/',
   'beat': '/bit/', 'bit': '/bɪt/',
@@ -129,8 +134,7 @@ const wordToIPA = {
   'bout': '/baʊt/',
 };
 
-
-// Word pairs for the game based on provided Markdown files
+// Word pairs for the game
 const minimalPairs = {
   'longE_shortI': { // 長 e /i/ vs. 短 i /ɪ/
     name: '長 e /i/ vs. 短 i /ɪ/',
@@ -197,7 +201,7 @@ const minimalPairs = {
   }
 };
 
-// Utility function to shuffle an array
+// Utility: shuffle
 const shuffleArray = (array) => {
   const newArray = [...array];
   for (let i = newArray.length - 1; i > 0; i--) {
@@ -216,146 +220,110 @@ const phonemeLearningExamples = [
   { phoneme: '短 i /ɪ/', word: 'bit' },
 ];
 
-
 const App = () => {
   const [currentRoundWord, setCurrentRoundWord] = useState('');
   const [options, setOptions] = useState([]);
-  const [score, setScore] = useState(0); // Total score for the set
+  const [score, setScore] = useState(0);
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [feedbackClass, setFeedbackClass] = useState('');
-  const [isListening, setIsListening] = useState(false); // Used for spinner on main game play button
+  const [isListening, setIsListening] = useState(false);
   const [gameMode, setGameMode] = useState(null); // 'longE_shortI', 'longA_shortE', 'shortE_shortA', 'all', 'phonemeLearning'
   const [buttonsDisabled, setButtonsDisabled] = useState(false);
-  const [audioLoading, setAudioLoading] = useState(false); // Used for spinner on main game play button
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // Current question index (0-9)
-  const [showResult, setShowResult] = useState(false); // To show results at the end of a set
-  const [questionHistory, setQuestionHistory] = useState([]); // To store history for results review
-  const [hasAudioBeenPlayedThisRound, setHasAudioBeenPlayedThisRound] = useState(false); // New state for audio played status
+  const [audioLoading, setAudioLoading] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [showResult, setShowResult] = useState(false);
+  const [questionHistory, setQuestionHistory] = useState([]);
+  const [hasAudioBeenPlayedThisRound, setHasAudioBeenPlayedThisRound] = useState(false);
   const [resultAudioPlayingId, setResultAudioPlayingId] = useState(null);
-
-
-  // 新增狀態：儲存當前回合的隨機不重複配對組
   const [shuffledPairsForRound, setShuffledPairsForRound] = useState([]);
-
-  // Removed audioContextRef as Tone.context is used directly
-  const synthRef = useRef(null); // Tone.js synth
+  const synthRef = useRef(null);
   const [audioContextInitialized, setAudioContextInitialized] = useState(false);
-  // New state to track if microphone permission has been requested (and potentially granted)
   const [microphonePermissionRequested, setMicrophonePermissionRequested] = useState(false);
+  const [selectedOptionForHighlight, setSelectedOptionForHighlight] = useState(null);
 
   // Initialize Tone.js synth on mount
   useEffect(() => {
-    // Initialize Tone.js Synth only once
     if (!synthRef.current) {
       synthRef.current = new Tone.Synth().toDestination();
     }
 
-    // Cleanup function for Tone.js resources
     return () => {
       if (synthRef.current) {
         synthRef.current.dispose();
-        synthRef.current = null; // Clear ref on unmount
+        synthRef.current = null;
       }
-      // Stop any ongoing Web Speech API speech
       if (window.speechSynthesis && window.speechSynthesis.speaking) {
-          window.speechSynthesis.cancel();
+        window.speechSynthesis.cancel();
       }
-      // Tone.context is globally managed by Tone.js and handles its own lifecycle.
-      // Explicitly closing it here might interfere with Tone.js's internal state.
     };
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
-
-  // Function to ensure Tone.context is running
+  // Ensure Tone.context is running (must be called in user gesture on iOS)
   const initializeAudioContext = async () => {
-    // Tone.start() handles resuming a suspended context or starting a new one.
-    // It should be called after a user gesture.
     if (Tone.context.state !== 'running') {
-      console.log('AudioContext not running, attempting Tone.start()... Current state:', Tone.context.state);
       try {
         await Tone.start();
+        if (Tone.context && Tone.context.state !== 'running') {
+          // 兼容性保險
+          await Tone.context.resume();
+        }
         setAudioContextInitialized(true);
-        console.log('AudioContext is now running!');
       } catch (e) {
-        console.error('Failed to start AudioContext with Tone.start():', e);
+        console.error('Failed to start/resume AudioContext:', e);
       }
-    } else {
-      console.log('AudioContext is already running.');
     }
   };
 
-  // Helper function: delay for a given time
-  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  // Play correct sound effect (ding-dong)
   const playCorrectSound = async () => {
-    console.log("Attempting to play correct sound.");
-    await initializeAudioContext(); // Ensure context is running
+    await initializeAudioContext();
     if (synthRef.current && Tone.context.state === 'running') {
-      console.log("Playing correct sound notes...");
-      synthRef.current.triggerAttackRelease("C5", "8n"); // First ding
-      await delay(100); // 0.1 second interval
-      synthRef.current.triggerAttackRelease("G5", "8n"); // First dong
-      await delay(200); // 0.2 second interval (between ding-dong sets)
-      synthRef.current.triggerAttackRelease("C5", "8n"); // Second ding
-      await delay(100); // 0.1 second interval
-      synthRef.current.triggerAttackRelease("G5", "8n"); // Second dong
-    } else {
-      console.log("Cannot play correct sound: synth not ready or context not running.", synthRef.current, Tone.context.state);
+      synthRef.current.triggerAttackRelease('C5', '8n');
+      await delay(100);
+      synthRef.current.triggerAttackRelease('G5', '8n');
+      await delay(200);
+      synthRef.current.triggerAttackRelease('C5', '8n');
+      await delay(100);
+      synthRef.current.triggerAttackRelease('G5', '8n');
     }
   };
 
-  // Play incorrect sound effect (da-da)
   const playIncorrectSound = async () => {
-    console.log("Attempting to play incorrect sound.");
-    await initializeAudioContext(); // Ensure context is running
+    await initializeAudioContext();
     if (synthRef.current && Tone.context.state === 'running') {
-      console.log("Playing incorrect sound notes...");
-      synthRef.current.triggerAttackRelease("F4", "8n");
-      await delay(250); // Simulate 8n delay
-      synthRef.current.triggerAttackRelease("C4", "8n");
-    } else {
-      console.log("Cannot play incorrect sound: synth not ready or context not running.", synthRef.current, Tone.context.state);
+      synthRef.current.triggerAttackRelease('F4', '8n');
+      await delay(250);
+      synthRef.current.triggerAttackRelease('C4', '8n');
     }
   };
 
-
-  // State to track the selected option for highlighting
-  const [selectedOptionForHighlight, setSelectedOptionForHighlight] = useState(null);
-
-  // Effect to start a new question when gameMode changes or currentQuestionIndex updates
+  // New question when deps change
   useEffect(() => {
-    // 只有在 gameMode 已選擇、不是學習模式、不顯示結果，並且當回合配對已準備好時才開始新題目
     if (gameMode && gameMode !== 'phonemeLearning' && !showResult && shuffledPairsForRound.length > 0) {
       startNewQuestion();
     }
-  }, [gameMode, currentQuestionIndex, showResult, shuffledPairsForRound]); // 新增 shuffledPairsForRound 作為依賴項
+  }, [gameMode, currentQuestionIndex, showResult, shuffledPairsForRound]);
 
-  // Function to start a new question within a set
   const startNewQuestion = () => {
     setFeedbackMessage('');
     setFeedbackClass('');
     setButtonsDisabled(false);
-    setIsListening(false); // Ensure listening spinner is reset for main game button
-    setSelectedOptionForHighlight(null); // CRUCIAL: Reset highlight here before new question content is loaded
-    setHasAudioBeenPlayedThisRound(false); // Reset audio played status for new question
+    setIsListening(false);
+    setSelectedOptionForHighlight(null);
+    setHasAudioBeenPlayedThisRound(false);
 
-    // 從當前回合已隨機排列的不重複配對組中，取出當前題目的配對
     const currentPair = shuffledPairsForRound[currentQuestionIndex];
 
     if (!currentPair) {
-        // 如果沒有更多題目，或配對尚未初始化，則結束回合
-        console.log("當前回合已無更多題目或配對尚未初始化。");
-        if (currentQuestionIndex >= shuffledPairsForRound.length && shuffledPairsForRound.length > 0) {
-            setShowResult(true); // 如果所有生成的題目都已用完，則自動顯示結果
-        }
-        return;
+      if (currentQuestionIndex >= shuffledPairsForRound.length && shuffledPairsForRound.length > 0) {
+        setShowResult(true);
+      }
+      return;
     }
 
     let wordToPlay;
     let otherWord;
-
-    // Randomly decide which word from the pair will be the "heard" word
     if (Math.random() < 0.5) {
       wordToPlay = currentPair.correct;
       otherWord = currentPair.incorrect;
@@ -368,155 +336,154 @@ const App = () => {
     setOptions(shuffleArray([wordToPlay, otherWord]));
   };
 
-  // Web Speech API 的語音合成函數
+  // ---- Web Speech API ----
   const speakText = (text, lang = 'en-US') => {
     return new Promise((resolve, reject) => {
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = lang; // 設定語言，以獲得更好的發音 (例如 'en-US')
+      if (!('speechSynthesis' in window)) {
+        reject(new Error('此瀏覽器不支援 Web Speech API。請改用 HTTPS 與支援的瀏覽器。'));
+        return;
+      }
 
-        // 可選：如果需要特定語音，但通常預設即可
-        const voices = speechSynthesis.getVoices();
-        const englishVoice = voices.find(voice => voice.lang === 'en-US' || voice.lang.startsWith('en-'));
+      try {
+        // iOS 有時需要先取消殘留發音
+        if (window.speechSynthesis.speaking) {
+          window.speechSynthesis.cancel();
+        }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+
+        // 嘗試挑選英語語音（若取不到就用預設）
+        const voices = speechSynthesis.getVoices?.() || [];
+        const englishVoice = voices.find(
+          (voice) => voice.lang === 'en-US' || (voice.lang && voice.lang.startsWith('en-'))
+        );
         if (englishVoice) {
           utterance.voice = englishVoice;
         }
 
-        utterance.onend = () => {
-          resolve();
-        };
+        utterance.onend = () => resolve();
         utterance.onerror = (event) => {
           console.error('SpeechSynthesisUtterance.onerror', event);
           reject(new Error('語音合成錯誤。'));
         };
 
-        speechSynthesis.speak(utterance);
-      } else {
-        reject(new Error('此瀏覽器不支援 Web Speech API。根據瀏覽器安全政策，請從外部網址或 HTTPS 啟用。')); // Modified error message
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {
+        reject(e);
       }
     });
   };
- // Minimal change: keep speakText as-is; watch speechSynthesis.speaking
-const playResultWordAudio = (word, id) => {
-  if (resultAudioPlayingId) return; // prevent overlapping plays
-  setResultAudioPlayingId(id);
 
-  try {
-    speakText(word, 'en-US'); // your existing function
-  } catch (err) {
-    console.error('Result audio play error:', err);
-  }
+  const playResultWordAudio = (word, id) => {
+    if (resultAudioPlayingId) return; // prevent overlapping plays
+    setResultAudioPlayingId(id);
 
-  // Clear spinner when TTS actually finishes (no await needed)
-  let tries = 0;                     // safety guard (~20s max)
-  const iv = setInterval(() => {
-    const synth = window.speechSynthesis;
-    const speaking = !!(synth && synth.speaking);
-
-    if (!speaking || tries++ > 200) {
-      clearInterval(iv);
-      setResultAudioPlayingId(null);
-    }
-  }, 100); // check every 100ms; lower if you want snappier updates
-};
-
-
-
-  // 使用 Web Speech API 播放遊戲單字音檔 (for main game screen)
-  const playGameWordAudio = async (text) => {
-    setAudioLoading(true); // 顯示載入中旋轉圖示
-    setIsListening(true); // 也用於旋轉圖示
-    setHasAudioBeenPlayedThisRound(true); // Set audio played to true as soon as playback is triggered
     try {
-      await speakText(text, 'en-US'); // 播放單字
+      speakText(word, 'en-US');
+    } catch (err) {
+      console.error('Result audio play error:', err);
+    }
+
+    // 有些 iOS 環境 onend 可能不穩，保險用 polling 收斂 spinner
+    let tries = 0;
+    const iv = setInterval(() => {
+      const synth = window.speechSynthesis;
+      const speaking = !!(synth && synth.speaking);
+      if (!speaking || tries++ > 200) {
+        clearInterval(iv);
+        setResultAudioPlayingId(null);
+      }
+    }, 100);
+  };
+
+  // 播放遊戲題目發音
+  const playGameWordAudio = async (text) => {
+    setAudioLoading(true);
+    setIsListening(true);
+    setHasAudioBeenPlayedThisRound(true);
+    try {
+      await speakText(text, 'en-US');
     } catch (error) {
-      console.error("使用 Web Speech API 播放遊戲單字音檔時出錯：", error);
-      setFeedbackMessage("音檔播放失敗，請重試。");
+      console.error('使用 Web Speech API 播放遊戲單字音檔時出錯：', error);
+      setFeedbackMessage('音檔播放失敗，請重試。');
       setFeedbackClass('text-red-500');
     } finally {
-      setAudioLoading(false); // 隱藏載入中旋轉圖示
-      setIsListening(false); // 隱藏旋轉圖示
+      setAudioLoading(false);
+      setIsListening(false);
     }
   };
 
-  // 處理「播放」按鈕點擊 (針對遊戲單字)
-  const handleListenClick = () => {
-    if (audioLoading) return; // 防止重複音訊請求
+  // ✅ iOS：點擊播放前強制開啟 AudioContext
+  const handleListenClick = async () => {
+    if (audioLoading) return;
+    await initializeAudioContext();
     playGameWordAudio(currentRoundWord);
   };
 
-
-  // 處理拼寫選項點擊
   const handleOptionClick = (chosenWord) => {
-    // Ensure buttons are disabled if audio hasn't been played this round or if already disabled
     if (buttonsDisabled || !hasAudioBeenPlayedThisRound) return;
     setButtonsDisabled(true);
-    setSelectedOptionForHighlight(chosenWord); // 設定選取的選項以進行高亮顯示
+    setSelectedOptionForHighlight(chosenWord);
 
     const correct = chosenWord === currentRoundWord;
 
-    // 記錄題目歷史以供結果回顧
-    setQuestionHistory(prevHistory => [
-      ...prevHistory,
+    setQuestionHistory((prev) => [
+      ...prev,
       {
         questionNumber: currentQuestionIndex + 1,
         heardWord: currentRoundWord,
-        chosenWord: chosenWord,
+        chosenWord,
         isCorrect: correct,
-        options: options // 儲存選項以供回顧 (如果需要)
-      }
+        options,
+      },
     ]);
 
     if (correct) {
       setFeedbackMessage('正確！');
-      setFeedbackClass('text-[#3e5c76]'); // 正確回饋文字顏色
-      setScore(prevScore => prevScore + 10); // 每答對一題得 10 分
-      playCorrectSound(); // 播放正確音效
+      setFeedbackClass('text-[#3e5c76]');
+      setScore((prevScore) => prevScore + 10);
+      playCorrectSound();
     } else {
       setFeedbackMessage(`錯誤，正確答案是「${currentRoundWord}」。`);
-      setFeedbackClass('text-[#1d2d44]'); // 錯誤回饋文字顏色
-      playIncorrectSound(); // 播放錯誤音效
+      setFeedbackClass('text-[#1d2d44]');
+      playIncorrectSound();
     }
 
-    // 短暫延遲後，移至下一題或顯示結果
     setTimeout(() => {
-      if (currentQuestionIndex < 9) { // 一個回合有 10 題 (0 到 9)
-        setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+      if (currentQuestionIndex < 9) {
+        setCurrentQuestionIndex((prev) => prev + 1);
       } else {
-        setShowResult(true); // 10 題回合結束
+        setShowResult(true);
       }
     }, 2000);
   };
 
-  // 開始新回合的函數 (重設分數、索引、歷史記錄並準備新的不重複題目)
+  // 開始新回合
   const startNewSet = (mode) => {
     setGameMode(mode);
     setScore(0);
     setCurrentQuestionIndex(0);
     setQuestionHistory([]);
     setShowResult(false);
-    setSelectedOptionForHighlight(null); // 確保開始新回合時沒有高亮顯示
-    setHasAudioBeenPlayedThisRound(false); // Reset audio played status for new set
+    setSelectedOptionForHighlight(null);
+    setHasAudioBeenPlayedThisRound(false);
 
     let pairsToShuffle;
     if (mode === 'all') {
-      // 串聯所有類別的配對
-      pairsToShuffle = Object.values(minimalPairs).flatMap(category => category.pairs);
+      pairsToShuffle = Object.values(minimalPairs).flatMap((c) => c.pairs);
     } else if (minimalPairs[mode]) {
-      // 使用選定類別的配對
       pairsToShuffle = minimalPairs[mode].pairs;
     } else {
-      console.error("選擇了無效的遊戲模式。");
-      pairsToShuffle = []; // 預設值
+      console.error('選擇了無效的遊戲模式。');
+      pairsToShuffle = [];
     }
 
-    // 隨機排列並取出前 10 組不重複的配對組作為本回合題目
-    // 如果可用配對少於 10 組，則取所有可用配對
     const uniquePairs = shuffleArray(pairsToShuffle).slice(0, 10);
     setShuffledPairsForRound(uniquePairs);
   };
 
-  // 返回模式選擇 (重設所有遊戲狀態)
+  // 返回模式選擇
   const backToModeSelection = () => {
     setGameMode(null);
     setScore(0);
@@ -530,26 +497,34 @@ const playResultWordAudio = (word, id) => {
     setOptions([]);
     setQuestionHistory([]);
     setShowResult(false);
-    setSelectedOptionForHighlight(null); // 確保返回模式選擇時沒有高亮顯示
-    setShuffledPairsForRound([]); // 清除隨機配對組
-    setHasAudioBeenPlayedThisRound(false); // Reset audio played status
+    setSelectedOptionForHighlight(null);
+    setShuffledPairsForRound([]);
+    setHasAudioBeenPlayedThisRound(false);
   };
 
-  // 發音學習頁面元件
+  // ---- 發音學習頁面 ----
   const PhonemeLearningPage = ({ onBack }) => {
-    const [playingWord, setPlayingWord] = useState(null); // 'word' if playing, 'recorded-word' if recorded audio playing, null if not.
-    const [recordingWord, setRecordingWord] = useState(null); // 'word' if recording, null if not.
-    const [recordedAudioMap, setRecordedAudioMap] = useState({}); // { 'word': 'blob:url' }
+    const [playingWord, setPlayingWord] = useState(null); // 'word' or `recorded-${word}`
+    const [recordingWord, setRecordingWord] = useState(null);
+    const [recordedAudioMap, setRecordedAudioMap] = useState({}); // { word: blobUrl }
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
+    const objectUrlsRef = useRef([]); // 釋放 URL 用
 
+    // 清理 object URLs
+    useEffect(() => {
+      return () => {
+        objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+        objectUrlsRef.current = [];
+      };
+    }, []);
 
-    // Play phoneme example audio
+    // 播放示範發音（TTS）
     const playPhonemeAudio = async (wordToPlay) => {
-      if (playingWord !== null || recordingWord !== null) return; // Prevent multiple audio or recording at once
-
+      if (playingWord !== null || recordingWord !== null) return;
       setPlayingWord(wordToPlay);
       try {
+        await initializeAudioContext(); // ✅ iOS: 互動時開啟
         await speakText(wordToPlay, 'en-US');
       } catch (error) {
         console.error(`Error playing phoneme audio (${wordToPlay}):`, error);
@@ -558,26 +533,37 @@ const playResultWordAudio = (word, id) => {
       }
     };
 
-    // Start recording for a specific word
+    // 開始錄音
     const startRecording = async (wordToRecord) => {
-      // If already recording this word, stop it
+      // 重複點擊同一個單字 -> 停止
       if (recordingWord === wordToRecord) {
         stopRecording();
         return;
       }
-
-      if (playingWord !== null || recordingWord !== null) return; // Prevent recording if audio is playing or another recording is active
+      if (playingWord !== null || recordingWord !== null) return;
 
       try {
-        // This getUserMedia will now run after the initial request on the homepage
-        // If permission was granted, it will resolve immediately without a prompt.
+        await initializeAudioContext(); // ✅ iOS: 互動時開啟
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          alert('本裝置或瀏覽器不支援錄音。');
+          return;
+        }
+
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        // iOS 優先 mp4/AAC，其他瀏覽器退回 webm/opus
+
+        // ✅ iOS 優先使用 AAC/MP4
         const preferredMime =
           (window.MediaRecorder && MediaRecorder.isTypeSupported('audio/mp4;codecs=mp4a.40.2')) ? 'audio/mp4;codecs=mp4a.40.2' :
           (window.MediaRecorder && MediaRecorder.isTypeSupported('audio/mp4')) ? 'audio/mp4' :
+          (window.MediaRecorder && MediaRecorder.isTypeSupported('audio/m4a')) ? 'audio/m4a' :
           (window.MediaRecorder && MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) ? 'audio/webm;codecs=opus' :
           '';
+
+        if (!window.MediaRecorder) {
+          alert('此瀏覽器不支援 MediaRecorder。請改用支援的瀏覽器（iOS 需 iOS 14 以上）。');
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
 
         mediaRecorderRef.current = preferredMime
           ? new MediaRecorder(stream, { mimeType: preferredMime })
@@ -591,61 +577,70 @@ const playResultWordAudio = (word, id) => {
 
         mediaRecorderRef.current.onstop = () => {
           const chosenType = (mediaRecorderRef.current && mediaRecorderRef.current.mimeType) || preferredMime || 'audio/webm';
-        const audioBlob = new Blob(audioChunksRef.current, { type: chosenType });
-         // WebM is commonly supported
+          const audioBlob = new Blob(audioChunksRef.current, { type: chosenType });
           const url = URL.createObjectURL(audioBlob);
-          setRecordedAudioMap(prevMap => ({ ...prevMap, [wordToRecord]: url }));
+          objectUrlsRef.current.push(url); // 收集以便釋放
+          setRecordedAudioMap((prev) => ({ ...prev, [wordToRecord]: url }));
           setRecordingWord(null);
-          stream.getTracks().forEach(track => track.stop()); // Stop the microphone stream tracks
+          stream.getTracks().forEach((track) => track.stop());
         };
 
         mediaRecorderRef.current.onerror = (event) => {
-          console.error("MediaRecorder error:", event.error);
+          console.error('MediaRecorder error:', event.error);
           setRecordingWord(null);
-          stream.getTracks().forEach(track => track.stop()); // Stop the microphone stream tracks
-          alert('無法存取麥克風或錄音時發生錯誤。'); // Simple alert for microphone errors
+          stream.getTracks().forEach((track) => track.stop());
+          alert('無法存取麥克風或錄音時發生錯誤。');
         };
 
         mediaRecorderRef.current.start();
         setRecordingWord(wordToRecord);
       } catch (err) {
         console.error('Error accessing microphone:', err);
-        alert('無法存取麥克風。請檢查瀏覽器權限。'); // Simple alert for microphone access errors
+        alert('無法存取麥克風。請檢查瀏覽器權限。');
         setRecordingWord(null);
       }
     };
 
-    // Stop current recording
     const stopRecording = () => {
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
         mediaRecorderRef.current.stop();
       }
     };
 
-    // Play recorded audio for a specific word
+    // 播放已錄音
     const playRecordedAudio = async (wordToPlay) => {
-      if (playingWord !== null || recordingWord !== null) return; // Prevent audio or recording at once
+      if (playingWord !== null || recordingWord !== null) return;
 
       const audioUrl = recordedAudioMap[wordToPlay];
       if (!audioUrl) return;
 
       const audio = new Audio(audioUrl);
-      setPlayingWord(`recorded-${wordToPlay}`); // Unique identifier for playing recorded audio
-      audio.onended = () => {
-        setPlayingWord(null);
-      };
+      // ✅ iOS: 避免進入全螢幕播放器
+      audio.playsInline = true;
+      audio.preload = 'auto';
+      audio.load();
+      audio.currentTime = 0;
+
+      setPlayingWord(`recorded-${wordToPlay}`);
+      audio.onended = () => setPlayingWord(null);
       audio.onerror = (err) => {
-        console.error("Error playing recorded audio:", err);
+        console.error('Error playing recorded audio:', err);
         setPlayingWord(null);
       };
-      audio.play();
+
+      try {
+        await initializeAudioContext(); // ✅ iOS: 互動時開啟
+        await audio.play();
+      } catch (e) {
+        console.error('audio.play() failed:', e);
+        setPlayingWord(null);
+      }
     };
 
-
     return (
-      <div className="flex flex-col space-y-4 w-full"> {/* <-- 修改：新增 w-full --> */}
+      <div className="flex flex-col space-y-4 w-full">
         <h2 className="text-xl font-bold text-[#1d2d44] mb-4">聽示範，說說看，再仔細比對</h2>
-        <p className="text-lg text-[#3e5c76] mb-6">仔細聽、開口唸，練習你的發音！</p> {/* 新增的小標題 */}
+        <p className="text-lg text-[#3e5c76] mb-6">仔細聽、開口唸，練習你的發音！</p>
 
         {phonemeLearningExamples.map(({ phoneme, word }) => {
           const isCurrentExamplePlaying = playingWord === word;
@@ -655,15 +650,16 @@ const playResultWordAudio = (word, id) => {
 
           return (
             <div key={word} className="flex flex-col items-center mb-6 p-4 rounded-xl bg-[#e6e2da] shadow-lg">
-              <p className="text-2xl font-bold text-[#1d2d44] mb-2">{phoneme}</p> {/* 發音標題，現在包含 IPA 符號 */}
-              <div className="flex items-center justify-between w-full"> {/* 單字/中文與播放按鈕的容器 */}
-                {/* Play Example Audio Button */}
+              <p className="text-2xl font-bold text-[#1d2d44] mb-2">{phoneme}</p>
+
+              <div className="flex items-center justify-between w-full">
+                {/* ▶ 播放示範 */}
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent event bubbling
-                    playPhonemeAudio(word);
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    await playPhonemeAudio(word);
                   }}
-                  disabled={playingWord !== null || recordingWord !== null} // Disable if any audio is playing or recording
+                  disabled={playingWord !== null || recordingWord !== null}
                   className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-xl text-[#1d2d44] shadow-md hover:scale-110 transition-transform duration-200 mr-2"
                 >
                   {isCurrentExamplePlaying ? (
@@ -676,33 +672,33 @@ const playResultWordAudio = (word, id) => {
                   )}
                 </button>
 
-                {/* Word, IPA, and Chinese Translation */}
+                {/* 單字 + IPA + 中譯 */}
                 <div className="flex flex-col text-left flex-grow mx-2">
-                  <span className="text-3xl font-extrabold text-[#1d2d44]">{word}</span> {/* 英文單字 */}
-                  {wordToIPA[word] && <span className="text-2xl text-[#3e5c76] font-sans">{wordToIPA[word]}</span>} {/* IPA - Changed to font-sans */}
-                  <span className="text-xl text-gray-700">{englishToChinese[word]}</span> {/* 中文翻譯 (字體縮小) */}
+                  <span className="text-3xl font-extrabold text-[#1d2d44]">{word}</span>
+                  {wordToIPA[word] && <span className="text-2xl text-[#3e5c76] font-sans">{wordToIPA[word]}</span>}
+                  <span className="text-xl text-gray-700">{englishToChinese[word]}</span>
                 </div>
 
-                {/* Record Button */}
+                {/* ● 錄音 / ■ 停止 */}
                 <button
-                  onClick={(e) => {
+                  onClick={async (e) => {
                     e.stopPropagation();
-                    startRecording(word);
+                    await startRecording(word);
                   }}
                   disabled={playingWord !== null || (recordingWord !== null && recordingWord !== word)}
                   className={`w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-md hover:scale-110 transition-transform duration-200 ml-2
                     ${isCurrentWordRecording ? 'bg-red-500 text-white' : 'bg-red-300 hover:bg-red-400 text-red-800'}`}
                 >
-                  {isCurrentWordRecording ? '■' : '●'} {/* Stop or Record icon */}
+                  {isCurrentWordRecording ? '■' : '●'}
                 </button>
 
-                {/* Play Recorded Audio Button */}
+                {/* ▶ 播放自己的錄音 */}
                 <button
-                  onClick={(e) => {
+                  onClick={async (e) => {
                     e.stopPropagation();
-                    playRecordedAudio(word);
+                    await playRecordedAudio(word);
                   }}
-                  disabled={!hasRecordedAudio || playingWord !== null || recordingWord !== null} // Disable if no recording, or any audio is playing/recording
+                  disabled={!hasRecordedAudio || playingWord !== null || recordingWord !== null}
                   className={`w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-md hover:scale-110 transition-transform duration-200 ml-2
                     ${hasRecordedAudio && !playingWord && !recordingWord ? 'bg-green-300 hover:bg-green-400 text-green-800' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
                 >
@@ -729,330 +725,297 @@ const playResultWordAudio = (word, id) => {
     );
   };
 
-
   return (
-    // <!-- 修改：最外層容器，用於置中 -->
+    // 外層容器
     <div className="w-full min-h-screen flex justify-center items-center p-4 bg-gray-100">
-        {/* <!-- 修改：卡片容器，設定桌機最大寬度為 720px --> */}
-        <div className="bg-[#f0ebd8] p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl w-full text-center border-4 border-[#3e5c76] max-w-md md:max-w-[720px] flex flex-col items-center">
+      <div className="bg-[#f0ebd8] p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl w-full text-center border-4 border-[#3e5c76] max-w-md md:max-w-[720px] flex flex-col items-center">
+        <h1 className="text-4xl font-extrabold text-[#1d2d44] mb-2 font-inter">
+          🔍母音偵探<br />
+          <span className="text-2xl">Vowel Detective 👂🏻</span>
+        </h1>
 
-            <h1 className="text-4xl font-extrabold text-[#1d2d44] mb-2 font-inter">
-                🔍母音偵探<br/>
-                <span className="text-2xl">Vowel Detective 👂🏻</span> {/* 字體大小縮小，添加 emoji */}
+        {gameMode === null ? (
+          <div className="flex flex-col space-y-4 w-full">
+            <p className="text-2xl text-[#3e5c76] mt-1 mb-2">破解最容易搞混的母音！</p>
+
+            {/* 發音範例入口（點擊中同時請麥克風權限 + 啟動 AudioContext） */}
+            <p className="text-xl font-bold text-[#3e5c76] mb-3">聽例字，練發音</p>
+            <button
+              onClick={async () => {
+                try {
+                  await initializeAudioContext(); // ✅ iOS: 互動時開啟
+                  if (!microphonePermissionRequested) {
+                    await navigator.mediaDevices.getUserMedia({ audio: true });
+                    setMicrophonePermissionRequested(true);
+                  }
+                  setGameMode('phonemeLearning');
+                } catch (err) {
+                  console.error('Error accessing microphone:', err);
+                  setMicrophonePermissionRequested(true); // 避免反覆彈窗
+                  alert('無法存取麥克風。請檢查瀏覽器權限。');
+                }
+              }}
+              className="bg-[#1d2d44] hover:bg-[#3e5c76] text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 mb-4 text-xl"
+            >
+              發音跟讀練習
+            </button>
+
+            <div className="mt-5 pt-2 border-t-2 border-dashed border-gray-300 w-full"></div>
+
+            {/* 遊戲模式 */}
+            <p className="text-2xl text-[#3e5c76] mb-3 mt-4">開始挑戰，測試你的聽力！</p>
+            <h2 className="text-xl font-bold text-[#1d2d44] mb-4">選擇練習模式：</h2>
+
+            <button
+              onClick={() => startNewSet('longA_shortE')}
+              className="bg-[#748cab] hover:bg-[#3e5c76] text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 text-xl"
+            >
+              {minimalPairs['longA_shortE'].name}
+            </button>
+            <button
+              onClick={() => startNewSet('shortE_shortA')}
+              className="bg-[#748cab] hover:bg-[#3e5c76] text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 text-xl"
+            >
+              {minimalPairs['shortE_shortA'].name}
+            </button>
+            <button
+              onClick={() => startNewSet('longE_shortI')}
+              className="bg-[#748cab] hover:bg-[#3e5c76] text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 text-xl"
+            >
+              {minimalPairs['longE_shortI'].name}
+            </button>
+            <button
+              onClick={() => startNewSet('all')}
+              className="bg-[#3e5c76] hover:bg-[#748cab] text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 text-xl"
+            >
+              綜合練習
+            </button>
+
+            <p className="text-sm text-gray-500 mt-4">© 2025 Christina Yu — All Rights Reserved</p>
+          </div>
+        ) : gameMode === 'phonemeLearning' ? (
+          <PhonemeLearningPage onBack={backToModeSelection} />
+        ) : showResult ? (
+          <div className="text-center p-4 w-full">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-[#1d2d44] mb-6 drop-shadow-md">
+              挑戰結束！🎉
             </h1>
-            {gameMode === null ? ( // 初始狀態：顯示模式選擇
-                <div className="flex flex-col space-y-4 w-full"> {/* <-- 修改：新增 w-full --> */}
-                    {/* 調整字體大小為 text-2xl */}
-                    <p className="text-2xl text-[#3e5c76] mt-1 mb-2">破解最容易搞混的母音！</p> 
+            <p className="text-3xl md:text-4xl font-bold text-[#1d2d44] mb-3">你的最終得分是：</p>
+            <p className="text-5xl md:text-6xl font-extrabold text-[#1d2d44] bg-[#f0ebd8] p-6 rounded-full inline-block shadow-lg animate-bounce mb-6">
+              {score} 分
+            </p>
 
-                    {/* 「發音範例」區塊 */}
-                    {/* 字體大小改為 text-xl，添加 font-bold */}
-                    <p className="text-xl font-bold text-[#3e5c76] mb-3">聽例字，練發音</p>
-                    <button
-                        onClick={async () => {
-                        if (!microphonePermissionRequested) {
-                            try {
-                            // Attempt to get microphone permission
-                            await navigator.mediaDevices.getUserMedia({ audio: true });
-                            setMicrophonePermissionRequested(true);
-                            setGameMode('phonemeLearning'); // Only set game mode if permission is granted
-                            } catch (err) {
-                            console.error('Error accessing microphone:', err);
-                            setMicrophonePermissionRequested(true); // Mark as requested to avoid re-prompting immediately
-                            alert('無法存取麥克風。請檢查瀏覽器權限。'); // Inform user about permission issue
-                            // Do not set gameMode, stay on homepage
-                            }
-                        } else {
-                            // If permission was already requested (and likely granted), proceed directly
-                            setGameMode('phonemeLearning');
-                        }
-                        }}
-                        className="bg-[#1d2d44] hover:bg-[#3e5c76] text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 mb-4 text-xl"
+            <h2 className="text-3xl font-bold text-[#1d2d44] mt-6 mb-4 drop-shadow-md">題目回顧</h2>
+            <div className="bg-[#f0ebd8] rounded-xl shadow-lg p-4 md:p-6 overflow-x-auto mx-auto w-full">
+              <table className="min-w-full text-left text-lg">
+                <thead>
+                  <tr className="bg-[#3e5c76] text-white">
+                    <th className="py-2 px-3 border-b border-[#1d2d44]">聽到的單字</th>
+                    <th className="py-2 px-3 border-b border-[#1d2d44]">你的選擇</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {questionHistory.map((item, index) => (
+                    <tr
+                      key={index}
+                      className="border-b border-[#f0ebd8] last:border-b-0 hover:bg-[#e6e2da] transition-colors duration-200"
                     >
-                        發音跟讀練習
-                    </button>
+                      {/* 聽到的單字 */}
+                      <td className="py-2 px-3 font-bold text-[#1d2d44]">
+                        <div className="flex items-start gap-2">
+                          {/* ▶ play button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playResultWordAudio(item.heardWord, `heard-${index}`);
+                            }}
+                            disabled={!!resultAudioPlayingId && resultAudioPlayingId !== `heard-${index}`}
+                            className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-xl text-[#1d2d44] shadow-md hover:scale-110 transition-transform duration-200"
+                            aria-label={`Play ${item.heardWord}`}
+                            title="播放"
+                          >
+                            {resultAudioPlayingId === `heard-${index}` ? (
+                              <svg
+                                className="animate-spin h-5 w-5 text-[#1d2d44]"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                              </svg>
+                            ) : (
+                              '▶'
+                            )}
+                          </button>
 
-                    <div className="mt-5 pt-2 border-t-2 border-dashed border-gray-300 w-full"></div> {/* 分隔線間距縮小 */}
-                    
-                    {/* 遊戲模式選擇區塊 */}
-                    {/* 調整字體大小為 text-2xl */}
-                    <p className="text-2xl text-[#3e5c76] mb-3 mt-4">開始挑戰，測試你的聽力！</p>
-                    <h2 className="text-xl font-bold text-[#1d2d44] mb-4">選擇練習模式：</h2> {/* 字體大小不變 */}
-                    {/* 手動指定練習模式按鈕順序 */}
-                    <button
-                        onClick={() => startNewSet('longA_shortE')}
-                        className="bg-[#748cab] hover:bg-[#3e5c76] text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 text-xl"
-                    >
-                        {minimalPairs['longA_shortE'].name}
-                    </button>
-                    <button
-                        onClick={() => startNewSet('shortE_shortA')}
-                        className="bg-[#748cab] hover:bg-[#3e5c76] text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 text-xl"
-                    >
-                        {minimalPairs['shortE_shortA'].name}
-                    </button>
-                    <button
-                        onClick={() => startNewSet('longE_shortI')}
-                        className="bg-[#748cab] hover:bg-[#3e5c76] text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 text-xl"
-                    >
-                        {minimalPairs['longE_shortI'].name}
-                    </button>
-                    <button
-                        onClick={() => startNewSet('all')}
-                        className="bg-[#3e5c76] hover:bg-[#748cab] text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 text-xl"
-                    >
-                        綜合練習
-                    </button>
-                    {/* 版權聲明現在在這裡，且只在 gameMode 為 null 時顯示 */}
-                    <p className="text-sm text-gray-500 mt-4">© 2025 Christina Yu — All Rights Reserved</p>
-                </div>
-            ) : gameMode === 'phonemeLearning' ? ( // 發音學習頁面獨立渲染
-                <PhonemeLearningPage onBack={backToModeSelection} />
-            ) : showResult ? ( // 遊戲結果畫面
-                <div className="text-center p-4 w-full"> {/* <-- 修改：新增 w-full --> */}
-                <h1 className="text-4xl md:text-5xl font-extrabold text-[#1d2d44] mb-6 drop-shadow-md">
-                    挑戰結束！🎉
-                </h1>
-                <p className="text-3xl md:text-4xl font-bold text-[#1d2d44] mb-3">
-                    你的最終得分是：
-                </p>
-                <p className="text-5xl md:text-6xl font-extrabold text-[#1d2d44] bg-[#f0ebd8] p-6 rounded-full inline-block shadow-lg animate-bounce mb-6">
-                    {score} 分
-                </p>
+                          {/* Word + IPA + Chinese */}
+                          <div>
+                            <div>{item.heardWord}</div>
+                            {wordToIPA[item.heardWord] && (
+                              <div className="text-base font-sans text-[#3e5c76]">{wordToIPA[item.heardWord]}</div>
+                            )}
+                            <div className="text-sm text-gray-500">{englishToChinese[item.heardWord]}</div>
+                          </div>
+                        </div>
+                      </td>
 
-                <h2 className="text-3xl font-bold text-[#1d2d44] mt-6 mb-4 drop-shadow-md">
-                    題目回顧
-                </h2>
-                <div className="bg-[#f0ebd8] rounded-xl shadow-lg p-4 md:p-6 overflow-x-auto mx-auto w-full">
+                      {/* 你的選擇 */}
+                      <td
+                        className={`py-2 px-3 font-semibold ${item.isCorrect ? 'text-green-600' : 'text-red-600'}`}
+                      >
+                        <div className="flex items-start gap-2">
+                          {/* ▶ play button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playResultWordAudio(item.chosenWord, `chosen-${index}`);
+                            }}
+                            disabled={!!resultAudioPlayingId && resultAudioPlayingId !== `chosen-${index}`}
+                            className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-xl text-[#1d2d44] shadow-md hover:scale-110 transition-transform duration-200"
+                            aria-label={`Play ${item.chosenWord}`}
+                            title="播放"
+                          >
+                            {resultAudioPlayingId === `chosen-${index}` ? (
+                              <svg
+                                className="animate-spin h-5 w-5 text-[#1d2d44]"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                              </svg>
+                            ) : (
+                              '▶'
+                            )}
+                          </button>
 
+                          {/* Word + IPA + Chinese */}
+                          <div>
+                            <div>{item.chosenWord}</div>
+                            {wordToIPA[item.chosenWord] && (
+                              <div className="text-base font-sans text-[#3e5c76]">{wordToIPA[item.chosenWord]}</div>
+                            )}
+                            <div className="text-sm text-gray-500">{englishToChinese[item.chosenWord]}</div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-                    <table className="min-w-full text-left text-lg">
-                        <thead>
-                            <tr className="bg-[#3e5c76] text-white">
-                            <th className="py-2 px-3 border-b border-[#1d2d44]">聽到的單字</th>
-                            <th className="py-2 px-3 border-b border-[#1d2d44]">你的選擇</th>
-                            </tr>
-                        </thead>
+            <div className="mt-6 flex flex-col md:flex-row justify-center gap-4">
+              <button
+                onClick={backToModeSelection}
+                className="px-8 py-4 rounded-full text-2xl font-bold bg-[#1d2d44] text-white hover:bg-[#3e5c76] transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                重新選擇模式 🔄
+              </button>
+              <button
+                onClick={() => startNewSet(gameMode)}
+                className="px-8 py-4 rounded-full text-2xl font-bold bg-[#3e5c76] text-white hover:bg-[#1d2d44] transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                再玩一次！✨
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="mb-6">
+              <p className="text-2xl font-bold text-[#1d2d44]">
+                得分：<span className="text-[#3e5c76]">{score}</span> / <span className="text-[#3e5c76]">100</span>
+              </p>
+              <p className="text-xl text-[#1d2d44] mt-2">
+                題目：<span className="text-[#3e5c76]">{currentQuestionIndex + 1}</span> / 10
+              </p>
+            </div>
 
-                        <tbody>
-                            {questionHistory.map((item, index) => (
-                            <tr
-                                key={index}
-                                className="border-b border-[#f0ebd8] last:border-b-0 hover:bg-[#e6e2da] transition-colors duration-200"
-                            >
-                                {/* 聽到的單字 */}
-                                <td className="py-2 px-3 font-bold text-[#1d2d44]">
-                                <div className="flex items-start gap-2">
-                                    {/* ▶ play button — same style as existing white round buttons */}
-                                    <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        playResultWordAudio(item.heardWord, `heard-${index}`);
-                                    }}
-                                    disabled={
-                                        !!resultAudioPlayingId && resultAudioPlayingId !== `heard-${index}`
-                                    }
-                                    className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-xl text-[#1d2d44] shadow-md hover:scale-110 transition-transform duration-200"
-                                    aria-label={`Play ${item.heardWord}`}
-                                    title="播放"
-                                    >
-                                    {resultAudioPlayingId === `heard-${index}` ? (
-                                        <svg
-                                        className="animate-spin h-5 w-5 text-[#1d2d44]"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        >
-                                        <circle
-                                            className="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                            stroke="currentColor"
-                                            strokeWidth="4"
-                                        ></circle>
-                                        <path
-                                            className="opacity-75"
-                                            fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                        ></path>
-                                        </svg>
-                                    ) : (
-                                        '▶'
-                                    )}
-                                    </button>
+            <p className="text-lg text-[#1d2d44] mb-6">聽一聽，選對字！</p>
 
-                                    {/* Word + IPA + Chinese */}
-                                    <div>
-                                    <div>{item.heardWord}</div>
-                                    {wordToIPA[item.heardWord] && (
-                                        <div className="text-base font-sans text-[#3e5c76]">
-                                        {wordToIPA[item.heardWord]}
-                                        </div>
-                                    )}
-                                    <div className="text-sm text-gray-500">
-                                        {englishToChinese[item.heardWord]}
-                                    </div>
-                                    </div>
-                                </div>
-                                </td>
-
-                                {/* 你的選擇 */}
-                                <td
-                                className={`py-2 px-3 font-semibold ${
-                                    item.isCorrect ? 'text-green-600' : 'text-red-600'
-                                }`}
-                                >
-                                <div className="flex items-start gap-2">
-                                    {/* ▶ play button — same style */}
-                                    <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        playResultWordAudio(item.chosenWord, `chosen-${index}`);
-                                    }}
-                                    disabled={
-                                        !!resultAudioPlayingId && resultAudioPlayingId !== `chosen-${index}`
-                                    }
-                                    className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-xl text-[#1d2d44] shadow-md hover:scale-110 transition-transform duration-200"
-                                    aria-label={`Play ${item.chosenWord}`}
-                                    title="播放"
-                                    >
-                                    {resultAudioPlayingId === `chosen-${index}` ? (
-                                        <svg
-                                        className="animate-spin h-5 w-5 text-[#1d2d44]"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        >
-                                        <circle
-                                            className="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                            stroke="currentColor"
-                                            strokeWidth="4"
-                                        ></circle>
-                                        <path
-                                            className="opacity-75"
-                                            fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                        ></path>
-                                        </svg>
-                                    ) : (
-                                        '▶'
-                                    )}
-                                    </button>
-
-                                    {/* Word + IPA + Chinese */}
-                                    <div>
-                                    <div>{item.chosenWord}</div>
-                                    {wordToIPA[item.chosenWord] && (
-                                        <div className="text-base font-sans text-[#3e5c76]">
-                                        {wordToIPA[item.chosenWord]}
-                                        </div>
-                                    )}
-                                    <div className="text-sm text-gray-500">
-                                        {englishToChinese[item.chosenWord]}
-                                    </div>
-                                    </div>
-                                </div>
-                                </td>
-                            </tr>
-                            ))}
-                        </tbody>
-                    </table>
-
-                </div>
-
-                <div className="mt-6 flex flex-col md:flex-row justify-center gap-4">
-                    <button
-                    onClick={backToModeSelection}
-                    className="px-8 py-4 rounded-full text-2xl font-bold bg-[#1d2d44] text-white hover:bg-[#3e5c76] transition-all duration-300 transform hover:scale-105 shadow-lg"
-                    >
-                    重新選擇模式 🔄
-                    </button>
-                    <button
-                    onClick={() => startNewSet(gameMode)}
-                    className="px-8 py-4 rounded-full text-2xl font-bold bg-[#3e5c76] text-white hover:bg-[#1d2d44] transition-all duration-300 transform hover:scale-105 shadow-lg"
-                    >
-                    再玩一次！✨
-                    </button>
-                </div>
-                </div>
-            ) : ( // 遊戲進行畫面
-                <>
-                <div className="mb-6">
-                    <p className="text-2xl font-bold text-[#1d2d44]">
-                    得分：<span className="text-[#3e5c76]">{score}</span> / <span className="text-[#3e5c76]">100</span>
-                    </p>
-                    <p className="text-xl text-[#1d2d44] mt-2">
-                    題目：<span className="text-[#3e5c76]">{currentQuestionIndex + 1}</span> / 10
-                    </p>
-                </div>
-
-                <p className="text-lg text-[#1d2d44] mb-6">聽一聽，選對字！</p>
-
-                <div className="mb-8 relative h-16 flex items-center justify-center">
-                    <button
-                    onClick={handleListenClick}
-                    disabled={audioLoading || buttonsDisabled}
-                    // 修改後的 className 以符合發音學習頁面的播放按鈕樣式
-                    className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-3xl text-[#1d2d44] shadow-md hover:scale-110 transition-transform duration-200"
-                    >
-                    {audioLoading ? (
-                        // 調整旋轉圖示大小和顏色以符合新按鈕樣式
-                        <svg className="animate-spin h-7 w-7 text-[#1d2d44]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        ) : (
-                        '▶' // 白色圓圈上的黑色三角形
-                        )}
-                    </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-8 w-full self-stretch">
-                {options.map((option) => (
-                    <button
-                    key={option}
-                    onClick={() => handleOptionClick(option)}
-                    disabled={buttonsDisabled || !hasAudioBeenPlayedThisRound}
-                    className={`
-                        w-full min-w-0 break-words py-4 px-4 rounded-xl text-center shadow-md
-                        transform transition duration-200 hover:scale-105
-                        ${selectedOptionForHighlight === option
-                        ? (option === currentRoundWord
-                            ? 'ring-4 ring-inset ring-[#3e5c76]'
-                            : 'ring-4 ring-inset ring-[#1d2d44]')
-                        : ''}
-                        ${(buttonsDisabled || !hasAudioBeenPlayedThisRound)
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : 'bg-[#3e5c76] hover:bg-[#1d2d44] text-white'}
-                    `}
-                    >
-                    <div className="text-3xl font-extrabold">{option}</div>
-                    {wordToIPA[option] && <div className="text-xl font-sans break-all">{wordToIPA[option]}</div>}
-                    <div className="text-base">{englishToChinese[option]}</div>
-                    </button>
-                ))}
-                </div>
-
-                {feedbackMessage && (
-                    <p className={`text-xl font-semibold mb-6 ${feedbackClass}`}>
-                    {feedbackMessage}
-                    </p>
+            <div className="mb-8 relative h-16 flex items-center justify-center">
+              <button
+                onClick={handleListenClick}
+                disabled={audioLoading || buttonsDisabled}
+                className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-3xl text-[#1d2d44] shadow-md hover:scale-110 transition-transform duration-200"
+              >
+                {audioLoading ? (
+                  <svg className="animate-spin h-7 w-7 text-[#1d2d44]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  '▶'
                 )}
+              </button>
+            </div>
 
+            <div className="grid grid-cols-2 gap-4 mb-8 w-full self-stretch">
+              {options.map((option) => (
                 <button
-                    onClick={backToModeSelection}
-                    className="bg-[#1d2d44] hover:bg-[#3e5c76] text-white font-bold py-2 px-6 rounded-full shadow transform transition duration-300 hover:scale-105"
+                  key={option}
+                  onClick={() => handleOptionClick(option)}
+                  disabled={buttonsDisabled || !hasAudioBeenPlayedThisRound}
+                  className={`
+                    w-full min-w-0 break-words py-4 px-4 rounded-xl text-center shadow-md
+                    transform transition duration-200 hover:scale-105
+                    ${selectedOptionForHighlight === option
+                      ? (option === currentRoundWord
+                          ? 'ring-4 ring-inset ring-[#3e5c76]'
+                          : 'ring-4 ring-inset ring-[#1d2d44]')
+                      : ''}
+                    ${(buttonsDisabled || !hasAudioBeenPlayedThisRound)
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-[#3e5c76] hover:bg-[#1d2d44] text-white'}
+                  `}
                 >
-                    返回模式選擇
+                  <div className="text-3xl font-extrabold">{option}</div>
+                  {wordToIPA[option] && <div className="text-xl font-sans break-all">{wordToIPA[option]}</div>}
+                  <div className="text-base">{englishToChinese[option]}</div>
                 </button>
-                </>
+              ))}
+            </div>
+
+            {feedbackMessage && (
+              <p className={`text-xl font-semibold mb-6 ${feedbackClass}`}>
+                {feedbackMessage}
+              </p>
             )}
-        </div>
-    </div> 
+
+            <button
+              onClick={backToModeSelection}
+              className="bg-[#1d2d44] hover:bg-[#3e5c76] text-white font-bold py-2 px-6 rounded-full shadow transform transition duration-300 hover:scale-105"
+            >
+              返回模式選擇
+            </button>
+          </>
+        )}
+      </div>
+    </div>
   );
 };
 
