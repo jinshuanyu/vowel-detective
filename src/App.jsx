@@ -728,7 +728,7 @@ const App = () => {
   return (
     // 外層容器
     <div className="w-full min-h-screen flex justify-center items-center p-4 bg-gray-100">
-      <div className="bg-[#f0ebd8] p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl w-full text-center border-4 border-[#3e5c76] max-w-md md:max-w-[720px] flex flex-col items-center">
+      <div className="bg-[#f0ebd8] p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl w-full text-center border-4 border-[#3e5c76] max-w-full md:max-w-[720px] flex flex-col items-center">
         <h1 className="text-4xl font-extrabold text-[#1d2d44] mb-2 font-inter">
           🔍母音偵探<br />
           <span className="text-2xl">Vowel Detective 👂🏻</span>
