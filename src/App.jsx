@@ -879,13 +879,13 @@ const App = () => {
             <h1 className="text-4xl md:text-5xl font-extrabold text-[#1d2d44] mb-6 drop-shadow-md">
               挑戰結束！🎉
             </h1>
-            <p className="text-3xl md:text-4xl font-bold text-[#1d2d44] mb-3">你的最終得分是：</p>
-            <p className="text-5xl md:text-6xl font-extrabold text-[#1d2d44] bg-[#f0ebd8] p-6 rounded-full inline-block shadow-lg animate-bounce mb-6">
+            <p className="text-3xl md:text-3xl font-bold text-[#1d2d44] mb-3">你的最終得分是：</p>
+            <p className="text-5xl md:text-5xl font-extrabold text-[#1d2d44] bg-[#f0ebd8] p-6 rounded-full inline-block shadow-lg animate-bounce mb-6">
               {score} 分
             </p>
 
-            <h2 className="text-3xl font-bold text-[#1d2d44] mt-6 mb-4 drop-shadow-md">題目回顧</h2>
-            <div className="bg-[#f0ebd8] rounded-xl shadow-lg p-4 md:p-6 overflow-x-auto mx-auto w-full">
+            <h2 className="text-2xl font-bold text-[#1d2d44] mt-6 mb-4 drop-shadow-md">題目回顧</h2>
+            <div className="bg-[#f0ebd8] rounded-xl shadow-lg p-1 md:p-6 overflow-x-auto mx-auto w-full">
               <table className="min-w-full text-left text-xl">
                 <thead>
                   <tr className="bg-[#3e5c76] text-white">
@@ -909,7 +909,7 @@ const App = () => {
                               playResultWordAudio(item.heardWord, `heard-${index}`);
                             }}
                             disabled={!!resultAudioPlayingId && resultAudioPlayingId !== `heard-${index}`}
-                            className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-xl text-[#1d2d44] shadow-md hover:scale-110 transition-transform duration-200"
+                            className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-lg text-[#1d2d44] shadow-md hover:scale-110 transition-transform duration-200"
                             aria-label={`Play ${item.heardWord}`}
                             title="播放"
                           >
@@ -962,7 +962,7 @@ const App = () => {
                               playResultWordAudio(item.chosenWord, `chosen-${index}`);
                             }}
                             disabled={!!resultAudioPlayingId && resultAudioPlayingId !== `chosen-${index}`}
-                            className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-xl text-[#1d2d44] shadow-md hover:scale-110 transition-transform duration-200"
+                            className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-lg text-[#1d2d44] shadow-md hover:scale-110 transition-transform duration-200"
                             aria-label={`Play ${item.chosenWord}`}
                             title="播放"
                           >
