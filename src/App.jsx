@@ -806,8 +806,8 @@ const App = () => {
 
   return (
     // 外層容器
-    <div className="w-full min-h-screen flex justify-center items-center sm:p-4 bg-gray-100">
-      <div className="bg-[#f0ebd8] p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl w-full text-center border-4 border-[#3e5c76] md:max-w-[720px] flex flex-col items-center min-h-screen sm:min-h-0">
+    <div className="w-full min-h-screen flex justify-center items-center p-0 sm:p-4 bg-gray-100">
+      <div className="bg-[#f0ebd8] p-3 sm:p-6 md:p-8 rounded-2xl shadow-xl w-full text-center border-4 border-[#3e5c76] md:max-w-[720px] flex flex-col items-center min-h-screen sm:min-h-0">
         <h1 className="text-4xl font-extrabold text-[#1d2d44] mb-2 font-inter">
           🔍母音偵探<br />
           <span className="text-2xl">Vowel Detective 👂🏻</span>

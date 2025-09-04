@@ -5,13 +5,12 @@ html, body, #root {
 
 body {
   display: flex;
-  justify-content: center; /* 水平置中 */
-  align-items: center;     /* 垂直置中 */
-  background-color: #f0ebd8; /* 背景跟 App.jsx 一樣 */
+  justify-content: center;
+  align-items: center;
+  background-color: #f0ebd8;
 }
 
 #root {
   width: 100%;
-  max-width: 720px;  /* 桌機最大寬度 */
-  padding: 1rem;
+  padding: 0;
 }
