@@ -152,7 +152,7 @@ const wordToIPA = {
 'test': '/tɛst/',
   'taste': '/teɪst/',
   'pest': '/pɛst/',
-  'paste': 'peɪst',
+  'paste': '/peɪst/',
   'past': '/pæst/',
   'passed': '/pæst/',
   'laughed': '/læft/',
