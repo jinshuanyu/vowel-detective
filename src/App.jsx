@@ -727,7 +727,7 @@ const App = () => {
 
   return (
     // 外層容器
-    <div className="w-full min-h-screen flex justify-center items-center p-2 sm:p-4 bg-gray-100">
+    <div className="w-full min-h-screen flex justify-center items-center sm:p-4 bg-gray-100">
       <div className="bg-[#f0ebd8] p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl w-full text-center border-4 border-[#3e5c76] md:max-w-[720px] flex flex-col items-center">
         <h1 className="text-4xl font-extrabold text-[#1d2d44] mb-2 font-inter">
           🔍母音偵探<br />
@@ -736,7 +736,7 @@ const App = () => {
 
         {gameMode === null ? (
           <div className="flex flex-col space-y-4 w-full">
-            <p className="text-xl sm:text-2xl text-[#3e5c76] mt-1 mb-2">破解最容易搞混的母音！</p>
+            <p className="text-2xl text-[#3e5c76] mt-1 mb-2">破解最容易搞混的母音！</p>
 
             {/* 發音範例入口（點擊中同時請麥克風權限 + 啟動 AudioContext） */}
             <p className="text-xl font-bold text-[#3e5c76] mb-3">聽例字，練發音</p>
@@ -763,7 +763,7 @@ const App = () => {
             <div className="mt-5 pt-2 border-t-2 border-dashed border-gray-300 w-full"></div>
 
             {/* 遊戲模式 */}
-            <p className="text-xl sm:text-2xl text-[#3e5c76] mb-3 mt-4">開始挑戰，測試你的聽力！</p>
+            <p className="text-2xl text-[#3e5c76] mb-3 mt-4">開始挑戰，測試你的聽力！</p>
             <h2 className="text-xl font-bold text-[#1d2d44] mb-4">選擇練習模式：</h2>
 
             <button
@@ -994,8 +994,8 @@ const App = () => {
                   `}
                 >
                   <div className="text-3xl font-extrabold">{option}</div>
-                  {wordToIPA[option] && <div className="text-xl font-sans break-all">{wordToIPA[option]}</div>}
-                  <div className="text-base">{englishToChinese[option]}</div>
+                  {wordToIPA[option] && <div className="text-2xl font-sans break-all">{wordToIPA[option]}</div>}
+                  <div className="text-xl">{englishToChinese[option]}</div>
                 </button>
               ))}
             </div>
