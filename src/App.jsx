@@ -64,7 +64,38 @@ const englishToChinese = {
   'Ed': '人名',
   'add': '加',
   'fad': '一時的風潮',
-  'leg': '腿', 'lag': '落後'
+  'leg': '腿', 'lag': '落後',
+'test': '測試',
+  'taste': '品嚐/味道',
+  'pest': '害蟲',
+  'paste': '糊/醬',
+  'past': '過去',
+  'passed': '通過了',
+  'laughed': '笑了',
+  'left': '左邊/離開了',
+  'wet': '濕的',
+  'wait': '等待',
+  'west': '西方',
+  'waist': '腰部',
+  'waste': '浪費',
+  'raced': '賽跑了',
+  'rest': '休息',
+  'been': '曾經是',
+  'said': '說了',
+  'sad': '傷心',
+  'Dad': '爸爸',
+  'dead': '死亡的',
+  'math': '數學',
+  'meth': '甲基安非他命',
+  'reap': '收割',
+  'rip': '撕裂',
+  'pace': '步速',
+  'pass': '通過',
+  'cheek': '臉頰',
+  'chick': '小雞',
+  'wren': '鷦鷯',
+  'rain': '雨',
+  'ran': '跑了',
 };
 
 // IPA Transcriptions for each word based on American English
@@ -118,6 +149,37 @@ const wordToIPA = {
   'add': '/æd/',
   'fad': '/fæd/',
   'leg': '/lɛɡ/', 'lag': '/læɡ/',
+'test': '/tɛst/',
+  'taste': '/teɪst/',
+  'pest': '/pɛst/',
+  'paste': 'peɪst',
+  'past': '/pæst/',
+  'passed': '/pæst/',
+  'laughed': '/læft/',
+  'left': '/lɛft/',
+  'wet': '/wɛt/',
+  'wait': '/weɪt/',
+  'west': '/wɛst/',
+  'waist': '/weɪst/',
+  'waste': '/weɪst/',
+  'raced': '/reɪst/',
+  'rest': '/rɛst/',
+  'been': '/bɪn/',
+  'said': '/sɛd/',
+  'sad': '/sæd/',
+  'Dad': '/dæd/',
+  'dead': '/dɛd/',
+  'math': '/mæθ/',
+  'meth': '/mɛθ/',
+  'reap': '/rip/',
+  'rip': '/rɪp/',
+  'pace': '/peɪs/',
+  'pass': '/pæs/',
+  'cheek': '/tʃik/',
+  'chick': '/tʃɪk/',
+  'wren': '/rɛn/',
+  'rain': '/reɪn/',
+  'ran': '/ræn/',
 
   // IPA for words in phonemeLearningExamples
   'about': '/əˈbaʊt/',
@@ -156,12 +218,22 @@ const minimalPairs = {
       { correct: 'heat', incorrect: 'hit' },
       { correct: 'seal', incorrect: 'sill' },
       { correct: 'wheel', incorrect: 'will' },
-      { correct: 'read', incorrect: 'rid' }
+      { correct: 'read', incorrect: 'rid' },
+{ correct: 'reap', incorrect: 'rip' },
+{ correct: 'cheek', incorrect: 'chick' },
+{ correct: 'bean', incorrect: 'been' },
     ]
   },
   'longA_shortE': { // 長 a /eɪ/ vs. 短 e /ɛ/
     name: '長 a /eɪ/ vs. 短 e /ɛ/',
     pairs: [
+{ correct: 'taste', incorrect: 'test' },
+{ correct: 'paste', incorrect: 'pest' },
+{ correct: 'wait', incorrect: 'wet' },
+{ correct: 'waste', incorrect: 'west' },
+{ correct: 'waist', incorrect: 'west' },
+{ correct: 'raced', incorrect: 'rest' },
+{ correct: 'rain', incorrect: 'wren' },
       { correct: 'mate', incorrect: 'met' },
       { correct: 'late', incorrect: 'let' },
       { correct: 'gate', incorrect: 'get' },
@@ -181,6 +253,13 @@ const minimalPairs = {
   'shortE_shortA': { // 短 e /ɛ/ vs. 短 a /æ/
     name: '短 e /ɛ/ vs. 短 a /æ/',
     pairs: [
+{ correct: 'pest', incorrect: 'past' },
+{ correct: 'pest', incorrect: 'passed' },
+{ correct: 'left', incorrect: 'laughed' },
+{ correct: 'said', incorrect: 'sad' },
+{ correct: 'dead', incorrect: 'Dad' },
+{ correct: 'wren', incorrect: 'ran' },
+{ correct: 'meth', incorrect: 'math' },
       { correct: 'pen', incorrect: 'pan' },
       { correct: 'men', incorrect: 'man' },
       { correct: 'bet', incorrect: 'bat' },
@@ -674,9 +753,9 @@ const App = () => {
 
                 {/* 單字 + IPA + 中譯 */}
                 <div className="flex flex-col text-left flex-grow mx-2">
-                  <span className="text-3xl font-extrabold text-[#1d2d44]">{word}</span>
-                  {wordToIPA[word] && <span className="text-2xl text-[#3e5c76] font-sans">{wordToIPA[word]}</span>}
-                  <span className="text-xl text-gray-700">{englishToChinese[word]}</span>
+                  <span className="text-3xl font-bold text-[#1d2d44]">{word}</span>
+                  {wordToIPA[word] && <span className="text-xl text-[#3e5c76] font-sans">{wordToIPA[word]}</span>}
+                  <span className="text-lg text-gray-700">{englishToChinese[word]}</span>
                 </div>
 
                 {/* ● 錄音 / ■ 停止 */}
@@ -728,7 +807,7 @@ const App = () => {
   return (
     // 外層容器
     <div className="w-full min-h-screen flex justify-center items-center sm:p-4 bg-gray-100">
-      <div className="bg-[#f0ebd8] p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl w-full text-center border-4 border-[#3e5c76] md:max-w-[720px] flex flex-col items-center">
+      <div className="bg-[#f0ebd8] p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl w-full text-center border-4 border-[#3e5c76] md:max-w-[720px] flex flex-col items-center min-h-screen sm:min-h-0">
         <h1 className="text-4xl font-extrabold text-[#1d2d44] mb-2 font-inter">
           🔍母音偵探<br />
           <span className="text-2xl">Vowel Detective 👂🏻</span>
@@ -736,7 +815,7 @@ const App = () => {
 
         {gameMode === null ? (
           <div className="flex flex-col space-y-4 w-full">
-            <p className="text-2xl text-[#3e5c76] mt-1 mb-2">破解最容易搞混的母音！</p>
+            <p className="text-xl sm:text-2xl text-[#3e5c76] mt-1 mb-2">破解最容易搞混的母音！</p>
 
             {/* 發音範例入口（點擊中同時請麥克風權限 + 啟動 AudioContext） */}
             <p className="text-xl font-bold text-[#3e5c76] mb-3">聽例字，練發音</p>
@@ -763,7 +842,7 @@ const App = () => {
             <div className="mt-5 pt-2 border-t-2 border-dashed border-gray-300 w-full"></div>
 
             {/* 遊戲模式 */}
-            <p className="text-2xl text-[#3e5c76] mb-3 mt-4">開始挑戰，測試你的聽力！</p>
+            <p className="text-xl sm:text-2xl text-[#3e5c76] mb-3 mt-4">開始挑戰，測試你的聽力！</p>
             <h2 className="text-xl font-bold text-[#1d2d44] mb-4">選擇練習模式：</h2>
 
             <button
@@ -807,7 +886,7 @@ const App = () => {
 
             <h2 className="text-3xl font-bold text-[#1d2d44] mt-6 mb-4 drop-shadow-md">題目回顧</h2>
             <div className="bg-[#f0ebd8] rounded-xl shadow-lg p-4 md:p-6 overflow-x-auto mx-auto w-full">
-              <table className="min-w-full text-left text-lg">
+              <table className="min-w-full text-left text-xl">
                 <thead>
                   <tr className="bg-[#3e5c76] text-white">
                     <th className="py-2 px-3 border-b border-[#1d2d44]">聽到的單字</th>
@@ -864,9 +943,9 @@ const App = () => {
                           <div>
                             <div>{item.heardWord}</div>
                             {wordToIPA[item.heardWord] && (
-                              <div className="text-base font-sans text-[#3e5c76]">{wordToIPA[item.heardWord]}</div>
+                              <div className="text-lg font-sans text-[#3e5c76]">{wordToIPA[item.heardWord]}</div>
                             )}
-                            <div className="text-sm text-gray-500">{englishToChinese[item.heardWord]}</div>
+                            <div className="text-base text-gray-500">{englishToChinese[item.heardWord]}</div>
                           </div>
                         </div>
                       </td>
@@ -917,9 +996,9 @@ const App = () => {
                           <div>
                             <div>{item.chosenWord}</div>
                             {wordToIPA[item.chosenWord] && (
-                              <div className="text-base font-sans text-[#3e5c76]">{wordToIPA[item.chosenWord]}</div>
+                              <div className="text-lg font-sans text-[#3e5c76]">{wordToIPA[item.chosenWord]}</div>
                             )}
-                            <div className="text-sm text-gray-500">{englishToChinese[item.chosenWord]}</div>
+                            <div className="text-base text-gray-500">{englishToChinese[item.chosenWord]}</div>
                           </div>
                         </div>
                       </td>
