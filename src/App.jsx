@@ -96,6 +96,33 @@ const englishToChinese = {
   'wren': '鷦鷯',
   'rain': '雨',
   'ran': '跑了',
+  // /u/ vs. /ʊ/
+  'boot': '靴子', 'book': '書',
+  'fool': '傻瓜', 'full': '滿的',
+  'pool': '游泳池', 'pull': '拉',
+  'Luke': '人名', 'look': '看',
+  'cooed': '咕咕叫', 'could': '能夠',
+  'wooed': '追求', 'wood': '木頭',
+  "who'd": '誰會', 'hood': '頭罩',
+  'shooed': '趕走', 'should': '應該',
+  // /oʊ/ vs. /ɔ/
+  'boat': '船', 'bought': '買了',
+  'low': '低', 'law': '法律',
+  'so': '所以', 'saw': '看見了',
+  'no': '不', 'gnaw': '啃',
+  'Joe': '人名', 'jaw': '下巴',
+  'row': '排/划', 'raw': '生的',
+  'coat': '外套', 'caught': '抓住了',
+  'tote': '手提袋', 'taught': '教了',
+  'woke': '醒來', 'walk': '走路',
+  'pole': '桿子', 'Paul': '人名',
+  'bowl': '碗', 'ball': '球',
+  'coal': '煤炭', 'call': '叫',
+  'toll': '過路費', 'tall': '高的',
+  'sole': '唯一/鞋底', 'Saul': '人名',
+  'note': '筆記', 'naught': '零',
+  'cold': '冷的', 'called': '叫了',
+  'bold': '大膽的', 'bald': '禿的',
 };
 
 // IPA Transcriptions for each word based on American English
@@ -194,6 +221,31 @@ const wordToIPA = {
   'boat': '/boʊt/',
   'boy': '/bɔɪ/',
   'bout': '/baʊt/',
+  // /u/ vs. /ʊ/
+  'fool': '/ful/', 'full': '/fʊl/',
+  'pool': '/pul/', 'pull': '/pʊl/',
+  'Luke': '/luk/', 'look': '/lʊk/',
+  'cooed': '/kud/', 'could': '/kʊd/',
+  'wooed': '/wud/', 'wood': '/wʊd/',
+  "who'd": '/hud/', 'hood': '/hʊd/',
+  'shooed': '/ʃud/', 'should': '/ʃʊd/',
+  // /oʊ/ vs. /ɔ/
+  'low': '/loʊ/', 'law': '/lɔ/',
+  'so': '/soʊ/', 'saw': '/sɔ/',
+  'no': '/noʊ/', 'gnaw': '/nɔ/',
+  'Joe': '/dʒoʊ/', 'jaw': '/dʒɔ/',
+  'row': '/roʊ/', 'raw': '/rɔ/',
+  'coat': '/koʊt/', 'caught': '/kɔt/',
+  'tote': '/toʊt/', 'taught': '/tɔt/',
+  'woke': '/woʊk/', 'walk': '/wɔk/',
+  'pole': '/poʊl/', 'Paul': '/pɔl/',
+  'bowl': '/boʊl/', 'ball': '/bɔl/',
+  'coal': '/koʊl/', 'call': '/kɔl/',
+  'toll': '/toʊl/', 'tall': '/tɔl/',
+  'sole': '/soʊl/', 'Saul': '/sɔl/',
+  'note': '/noʊt/', 'naught': '/nɔt/',
+  'cold': '/koʊld/', 'called': '/kɔld/',
+  'bold': '/boʊld/', 'bald': '/bɔld/',
 };
 
 // Word pairs for the game
@@ -277,6 +329,40 @@ const minimalPairs = {
       { correct: 'peck', incorrect: 'pack' },
       { correct: 'leg', incorrect: 'lag' }
     ]
+  },
+  'longOO_shortOO': { // 長 u /u/ vs. 短 oo /ʊ/
+    name: '長 u /u/ vs. 短 oo /ʊ/',
+    pairs: [
+      { correct: 'fool', incorrect: 'full' },
+      { correct: 'pool', incorrect: 'pull' },
+      { correct: 'Luke', incorrect: 'look' },
+      { correct: 'cooed', incorrect: 'could' },
+      { correct: 'wooed', incorrect: 'wood' },
+      { correct: "who'd", incorrect: 'hood' },
+      { correct: 'shooed', incorrect: 'should' },
+    ]
+  },
+  'longO_shortO': { // 長 o /oʊ/ vs. aw /ɔ/
+    name: '長 o /oʊ/ vs. aw /ɔ/',
+    pairs: [
+      { correct: 'low', incorrect: 'law' },
+      { correct: 'so', incorrect: 'saw' },
+      { correct: 'no', incorrect: 'gnaw' },
+      { correct: 'Joe', incorrect: 'jaw' },
+      { correct: 'row', incorrect: 'raw' },
+      { correct: 'coat', incorrect: 'caught' },
+      { correct: 'boat', incorrect: 'bought' },
+      { correct: 'tote', incorrect: 'taught' },
+      { correct: 'woke', incorrect: 'walk' },
+      { correct: 'pole', incorrect: 'Paul' },
+      { correct: 'bowl', incorrect: 'ball' },
+      { correct: 'coal', incorrect: 'call' },
+      { correct: 'toll', incorrect: 'tall' },
+      { correct: 'sole', incorrect: 'Saul' },
+      { correct: 'note', incorrect: 'naught' },
+      { correct: 'cold', incorrect: 'called' },
+      { correct: 'bold', incorrect: 'bald' },
+    ]
   }
 };
 
@@ -297,6 +383,10 @@ const phonemeLearningExamples = [
   { phoneme: '短 a /æ/', word: 'bat' },
   { phoneme: '長 e /i/', word: 'beat' },
   { phoneme: '短 i /ɪ/', word: 'bit' },
+  { phoneme: '長 u /u/', word: 'boot' },
+  { phoneme: '短 oo /ʊ/', word: 'book' },
+  { phoneme: '長 o /oʊ/', word: 'boat' },
+  { phoneme: 'aw /ɔ/', word: 'bought' },
 ];
 
 const App = () => {
@@ -331,6 +421,7 @@ const App = () => {
         synthRef.current.dispose();
         synthRef.current = null;
       }
+      // Web Speech API 僅作為 fallback，仍保留清理
       if (window.speechSynthesis && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
       }
@@ -415,65 +506,54 @@ const App = () => {
     setOptions(shuffleArray([wordToPlay, otherWord]));
   };
 
-  // ---- Web Speech API ----
-  const speakText = (text, lang = 'en-US') => {
+  // ---- 播放 mp3 音檔（Azure TTS 預先生成） ----
+  const wordToFilename = (word) => {
+    return word.trim().toLowerCase().replace(/ /g, '_').replace(/\//g, '').replace(/'/g, '') + '.mp3';
+  };
+
+  const speakText = (text) => {
     return new Promise((resolve, reject) => {
-      if (!('speechSynthesis' in window)) {
-        reject(new Error('此瀏覽器不支援 Web Speech API。請改用 HTTPS 與支援的瀏覽器。'));
-        return;
-      }
+      const filename = wordToFilename(text);
+      const basePath = import.meta.env.BASE_URL || '/';
+      const audioUrl = `${basePath}audio/${filename}`;
+      const audio = new Audio(audioUrl);
+      audio.playsInline = true;
+      audio.preload = 'auto';
 
-      try {
-        // iOS 有時需要先取消殘留發音
-        if (window.speechSynthesis.speaking) {
-          window.speechSynthesis.cancel();
+      audio.onended = () => resolve();
+      audio.onerror = (event) => {
+        console.error(`mp3 播放失敗 (${audioUrl})，fallback 到 Web Speech API`, event);
+        // Fallback: Web Speech API
+        if ('speechSynthesis' in window) {
+          if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'en-US';
+          utterance.onend = () => resolve();
+          utterance.onerror = () => reject(new Error('語音播放失敗。'));
+          window.speechSynthesis.speak(utterance);
+        } else {
+          reject(new Error('音檔載入失敗，且瀏覽器不支援語音合成。'));
         }
+      };
 
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = lang;
-
-        // 嘗試挑選英語語音（若取不到就用預設）
-        const voices = speechSynthesis.getVoices?.() || [];
-        const englishVoice = voices.find(
-          (voice) => voice.lang === 'en-US' || (voice.lang && voice.lang.startsWith('en-'))
-        );
-        if (englishVoice) {
-          utterance.voice = englishVoice;
-        }
-
-        utterance.onend = () => resolve();
-        utterance.onerror = (event) => {
-          console.error('SpeechSynthesisUtterance.onerror', event);
-          reject(new Error('語音合成錯誤。'));
-        };
-
-        window.speechSynthesis.speak(utterance);
-      } catch (e) {
+      audio.play().catch((e) => {
+        console.error('audio.play() failed:', e);
         reject(e);
-      }
+      });
     });
   };
 
-  const playResultWordAudio = (word, id) => {
+  const playResultWordAudio = async (word, id) => {
     if (resultAudioPlayingId) return; // prevent overlapping plays
     setResultAudioPlayingId(id);
 
     try {
-      speakText(word, 'en-US');
+      await speakText(word);
     } catch (err) {
       console.error('Result audio play error:', err);
+    } finally {
+      setResultAudioPlayingId(null);
     }
-
-    // 有些 iOS 環境 onend 可能不穩，保險用 polling 收斂 spinner
-    let tries = 0;
-    const iv = setInterval(() => {
-      const synth = window.speechSynthesis;
-      const speaking = !!(synth && synth.speaking);
-      if (!speaking || tries++ > 200) {
-        clearInterval(iv);
-        setResultAudioPlayingId(null);
-      }
-    }, 100);
   };
 
   // 播放遊戲題目發音
@@ -482,9 +562,9 @@ const App = () => {
     setIsListening(true);
     setHasAudioBeenPlayedThisRound(true);
     try {
-      await speakText(text, 'en-US');
+      await speakText(text);
     } catch (error) {
-      console.error('使用 Web Speech API 播放遊戲單字音檔時出錯：', error);
+      console.error('播放遊戲單字音檔時出錯：', error);
       setFeedbackMessage('音檔播放失敗，請重試。');
       setFeedbackClass('text-red-500');
     } finally {
@@ -530,7 +610,7 @@ const App = () => {
     }
 
     setTimeout(() => {
-      if (currentQuestionIndex < 9) {
+      if (currentQuestionIndex < shuffledPairsForRound.length - 1) {
         setCurrentQuestionIndex((prev) => prev + 1);
       } else {
         setShowResult(true);
@@ -558,7 +638,8 @@ const App = () => {
       pairsToShuffle = [];
     }
 
-    const uniquePairs = shuffleArray(pairsToShuffle).slice(0, 10);
+    const maxQuestions = Math.min(10, pairsToShuffle.length);
+    const uniquePairs = shuffleArray(pairsToShuffle).slice(0, maxQuestions);
     setShuffledPairsForRound(uniquePairs);
   };
 
@@ -604,7 +685,7 @@ const App = () => {
       setPlayingWord(wordToPlay);
       try {
         await initializeAudioContext(); // ✅ iOS: 互動時開啟
-        await speakText(wordToPlay, 'en-US');
+        await speakText(wordToPlay);
       } catch (error) {
         console.error(`Error playing phoneme audio (${wordToPlay}):`, error);
       } finally {
@@ -864,13 +945,52 @@ const App = () => {
               {minimalPairs['longE_shortI'].name}
             </button>
             <button
+              onClick={() => startNewSet('longOO_shortOO')}
+              className="bg-[#748cab] hover:bg-[#3e5c76] text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 text-xl"
+            >
+              {minimalPairs['longOO_shortOO'].name}
+            </button>
+            <button
+              onClick={() => startNewSet('longO_shortO')}
+              className="bg-[#748cab] hover:bg-[#3e5c76] text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 text-xl"
+            >
+              {minimalPairs['longO_shortO'].name}
+            </button>
+            <button
               onClick={() => startNewSet('all')}
               className="bg-[#3e5c76] hover:bg-[#748cab] text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 text-xl"
             >
               綜合練習
             </button>
 
-            <p className="text-sm text-gray-500 mt-4">© 2025 Christina Yu — All Rights Reserved</p>
+            <div className="mt-8 pt-4 border-t-2 border-dashed border-gray-300 w-full flex flex-col items-center">
+              <div className="flex items-center justify-center gap-4 mb-3">
+                <a href="mailto:mamahowma@gmail.com" aria-label="Email mamahowma" className="text-[#3e5c76] hover:text-[#1d2d44] transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" className="w-6 h-6"><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4L236.8 313.6c11.4 8.5 27 8.5 38.4 0L492.8 150.4c12.1-9.1 19.2-23.3 19.2-38.4c0-26.5-21.5-48-48-48H48zM0 176V384c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V176L294.4 339.2c-22.8 17.1-54 17.1-76.8 0L0 176z"/></svg>
+                </a>
+                <a href="https://www.facebook.com/mamahowma" target="_blank" rel="noopener noreferrer" aria-label="mamahowma Facebook Page" className="text-[#3e5c76] hover:text-[#1d2d44] transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" className="w-6 h-6"><path d="M512 256C512 114.6 397.4 0 256 0S0 114.6 0 256C0 376 82.7 476.8 194.2 504.5V334.2H141.4V256h52.8V222.3c0-87.1 39.4-127.5 125-127.5c16.2 0 44.2 3.2 55.7 6.4V172c-6-.6-16.5-1-29.6-1c-42 0-58.2 15.9-58.2 57.2V256h83.6l-14.4 78.2H287V512c11.5 1.5 23.2 2.7 35 3.3C409.4 480.6 512 376 512 256z"/></svg>
+                </a>
+                <a href="https://portaly.cc/mamahowma/support" target="_blank" rel="noopener noreferrer" aria-label="Support mamahowma" className="text-[#3e5c76] hover:text-[#1d2d44] transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" fill="currentColor" className="w-6 h-6"><path d="M96 64c0-17.7 14.3-32 32-32H448h64c70.7 0 128 57.3 128 128s-57.3 128-128 128H480c0 53-43 96-96 96H192c-53 0-96-43-96-96L96 64zM480 224h32c35.3 0 64-28.7 64-64s-28.7-64-64-64H480V224zM32 416H544c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32z"/></svg>
+                </a>
+              </div>
+              <a
+                href="https://portaly.cc/mamahowma/support"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block mb-4 px-5 py-2 bg-[#3e5c76] text-white rounded-full text-sm font-bold hover:bg-[#1d2d44] transition-colors shadow"
+              >
+                喜歡這個免費工具嗎？☕ 請杯咖啡鼓勵我
+              </a>
+              <p className="text-sm text-gray-500 mb-2">🔡 More English Tools:</p>
+              <div className="flex flex-wrap justify-center gap-2 mb-4 px-2">
+                <a href="https://jinshuanyu.github.io/Dolch-List-by-spelling-patterns/" target="_blank" rel="noopener noreferrer" className="inline-block px-3 py-1.5 bg-[#dbeafe] text-[#1d4ed8] rounded-full text-sm no-underline hover:bg-[#bfdbfe] transition-colors">Dolch 高頻詞拼讀</a>
+                <a href="https://jinshuanyu.github.io/word-mapper/" target="_blank" rel="noopener noreferrer" className="inline-block px-3 py-1.5 bg-[#dbeafe] text-[#1d4ed8] rounded-full text-sm no-underline hover:bg-[#bfdbfe] transition-colors">英文拼字 x 聲音對照</a>
+                <a href="https://jinshuanyu.github.io/englishplaylistsforkids/" target="_blank" rel="noopener noreferrer" className="inline-block px-3 py-1.5 bg-[#dbeafe] text-[#1d4ed8] rounded-full text-sm no-underline hover:bg-[#bfdbfe] transition-colors">英語影片片單</a>
+              </div>
+              <p className="text-sm text-gray-500">© 2025 Christina Yu — All Rights Reserved</p>
+            </div>
           </div>
         ) : gameMode === 'phonemeLearning' ? (
           <PhonemeLearningPage onBack={backToModeSelection} />
@@ -1027,10 +1147,10 @@ const App = () => {
           <>
             <div className="mb-6">
               <p className="text-2xl font-bold text-[#1d2d44]">
-                得分：<span className="text-[#3e5c76]">{score}</span> / <span className="text-[#3e5c76]">100</span>
+                得分：<span className="text-[#3e5c76]">{score}</span> / <span className="text-[#3e5c76]">{shuffledPairsForRound.length * 10}</span>
               </p>
               <p className="text-xl text-[#1d2d44] mt-2">
-                題目：<span className="text-[#3e5c76]">{currentQuestionIndex + 1}</span> / 10
+                題目：<span className="text-[#3e5c76]">{currentQuestionIndex + 1}</span> / {shuffledPairsForRound.length}
               </p>
             </div>
 
