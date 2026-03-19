@@ -988,6 +988,7 @@ const App = () => {
                 <a href="https://jinshuanyu.github.io/Dolch-List-by-spelling-patterns/" target="_blank" rel="noopener noreferrer" className="inline-block px-3 py-1.5 bg-[#dbeafe] text-[#1d4ed8] rounded-full text-sm no-underline hover:bg-[#bfdbfe] transition-colors">Dolch 高頻詞拼讀</a>
                 <a href="https://jinshuanyu.github.io/word-mapper/" target="_blank" rel="noopener noreferrer" className="inline-block px-3 py-1.5 bg-[#dbeafe] text-[#1d4ed8] rounded-full text-sm no-underline hover:bg-[#bfdbfe] transition-colors">英文拼字 x 聲音對照</a>
                 <a href="https://jinshuanyu.github.io/englishplaylistsforkids/" target="_blank" rel="noopener noreferrer" className="inline-block px-3 py-1.5 bg-[#dbeafe] text-[#1d4ed8] rounded-full text-sm no-underline hover:bg-[#bfdbfe] transition-colors">英語影片片單</a>
+                <a href="https://jinshuanyu.github.io/ipa-guide/" target="_blank" rel="noopener noreferrer" className="inline-block px-3 py-1.5 bg-[#dbeafe] text-[#1d4ed8] rounded-full text-sm no-underline hover:bg-[#bfdbfe] transition-colors">IPA 音標指南</a>
               </div>
               <p className="text-sm text-gray-500">© 2025 Christina Yu — All Rights Reserved</p>
             </div>
