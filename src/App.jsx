@@ -123,6 +123,34 @@ const englishToChinese = {
   'note': '筆記', 'naught': '零',
   'cold': '冷的', 'called': '叫了',
   'bold': '大膽的', 'bald': '禿的',
+  // /ʌ/ vs. /ɑ/
+  'bug': '蟲子', 'bog': '沼澤',
+  'but': '但是', 'bot': '機器人',
+  'buck': '美元(口語)/雄鹿', 'bock': '黑啤酒',
+  'cup': '杯子', 'cop': '警察',
+  'cut': '切', 'cot': '嬰兒床',
+  'cub': '幼獸', 'cob': '玉米穗軸',
+  'duck': '鴨子', 'dock': '碼頭',
+  'dug': '挖了', 'dog': '狗',
+  'gut': '腸子/直覺', 'got': '得到了',
+  'hug': '擁抱', 'hog': '豬',
+  'hut': '小屋', 'hot': '熱的',
+  'luck': '運氣', 'lock': '鎖',
+  'lung': '肺', 'long': '長的',
+  'muck': '泥濘', 'mock': '嘲笑',
+  'nut': '堅果', 'not': '不',
+  'putt': '推桿(高爾夫)', 'pot': '鍋子',
+  'rub': '搓/擦', 'rob': '搶劫',
+  'rung': '梯級/響了', 'wrong': '錯的',
+  'stuck': '卡住了', 'stock': '股票/庫存',
+  'sung': '唱了', 'song': '歌',
+  'tuck': '塞入', 'tock': '滴答聲',
+  'come': '來', 'calm': '冷靜',
+  'buddy': '好朋友', 'body': '身體',
+  'color': '顏色', 'collar': '衣領',
+  'rubber': '橡皮', 'robber': '強盜',
+  'utter': '完全的/說出', 'otter': '水獺',
+  'wonder': '想知道/奇蹟', 'wander': '漫步',
 };
 
 // IPA Transcriptions for each word based on American English
@@ -246,6 +274,33 @@ const wordToIPA = {
   'note': '/noʊt/', 'naught': '/nɔt/',
   'cold': '/koʊld/', 'called': '/kɔld/',
   'bold': '/boʊld/', 'bald': '/bɔld/',
+  // /ʌ/ vs. /ɑ/
+  'bug': '/bʌɡ/', 'bog': '/bɑɡ/',
+  'buck': '/bʌk/', 'bock': '/bɑk/',
+  'cup': '/kʌp/', 'cop': '/kɑp/',
+  'cut': '/kʌt/', 'cot': '/kɑt/',
+  'cub': '/kʌb/', 'cob': '/kɑb/',
+  'duck': '/dʌk/', 'dock': '/dɑk/',
+  'dug': '/dʌɡ/', 'dog': '/dɑɡ/',
+  'gut': '/ɡʌt/', 'got': '/ɡɑt/',
+  'hug': '/hʌɡ/', 'hog': '/hɑɡ/',
+  'hut': '/hʌt/', 'hot': '/hɑt/',
+  'luck': '/lʌk/', 'lock': '/lɑk/',
+  'lung': '/lʌŋ/', 'long': '/lɑŋ/',
+  'muck': '/mʌk/', 'mock': '/mɑk/',
+  'nut': '/nʌt/', 'not': '/nɑt/',
+  'putt': '/pʌt/', 'pot': '/pɑt/',
+  'rub': '/rʌb/', 'rob': '/rɑb/',
+  'rung': '/rʌŋ/', 'wrong': '/rɑŋ/',
+  'stuck': '/stʌk/', 'stock': '/stɑk/',
+  'sung': '/sʌŋ/', 'song': '/sɑŋ/',
+  'tuck': '/tʌk/', 'tock': '/tɑk/',
+  'come': '/kʌm/', 'calm': '/kɑm/',
+  'buddy': '/ˈbʌdi/', 'body': '/ˈbɑdi/',
+  'color': '/ˈkʌlɚ/', 'collar': '/ˈkɑlɚ/',
+  'rubber': '/ˈrʌbɚ/', 'robber': '/ˈrɑbɚ/',
+  'utter': '/ˈʌtɚ/', 'otter': '/ˈɑtɚ/',
+  'wonder': '/ˈwʌndɚ/', 'wander': '/ˈwɑndɚ/',
 };
 
 // Word pairs for the game
@@ -363,6 +418,38 @@ const minimalPairs = {
       { correct: 'cold', incorrect: 'called' },
       { correct: 'bold', incorrect: 'bald' },
     ]
+  },
+  'shortU_shortO': { // 短 u /ʌ/ vs. 短 o /ɑ/
+    name: '短 u /ʌ/ vs. 短 o /ɑ/',
+    pairs: [
+      { correct: 'bug', incorrect: 'bog' },
+      { correct: 'but', incorrect: 'bot' },
+      { correct: 'buck', incorrect: 'bock' },
+      { correct: 'cup', incorrect: 'cop' },
+      { correct: 'cut', incorrect: 'cot' },
+      { correct: 'cub', incorrect: 'cob' },
+      { correct: 'duck', incorrect: 'dock' },
+      { correct: 'dug', incorrect: 'dog' },
+      { correct: 'gut', incorrect: 'got' },
+      { correct: 'hug', incorrect: 'hog' },
+      { correct: 'hut', incorrect: 'hot' },
+      { correct: 'luck', incorrect: 'lock' },
+      { correct: 'lung', incorrect: 'long' },
+      { correct: 'muck', incorrect: 'mock' },
+      { correct: 'nut', incorrect: 'not' },
+      { correct: 'putt', incorrect: 'pot' },
+      { correct: 'rub', incorrect: 'rob' },
+      { correct: 'rung', incorrect: 'wrong' },
+      { correct: 'stuck', incorrect: 'stock' },
+      { correct: 'sung', incorrect: 'song' },
+      { correct: 'tuck', incorrect: 'tock' },
+      { correct: 'come', incorrect: 'calm' },
+      { correct: 'buddy', incorrect: 'body' },
+      { correct: 'color', incorrect: 'collar' },
+      { correct: 'rubber', incorrect: 'robber' },
+      { correct: 'utter', incorrect: 'otter' },
+      { correct: 'wonder', incorrect: 'wander' },
+    ]
   }
 };
 
@@ -387,6 +474,8 @@ const phonemeLearningExamples = [
   { phoneme: '短 oo /ʊ/', word: 'book' },
   { phoneme: '長 o /oʊ/', word: 'boat' },
   { phoneme: 'aw /ɔ/', word: 'bought' },
+  { phoneme: '短 u /ʌ/', word: 'but' },
+  { phoneme: '短 o /ɑ/', word: 'bot' },
 ];
 
 const App = () => {
@@ -955,6 +1044,12 @@ const App = () => {
               className="bg-[#748cab] hover:bg-[#3e5c76] text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 text-xl"
             >
               {minimalPairs['longO_shortO'].name}
+            </button>
+            <button
+              onClick={() => startNewSet('shortU_shortO')}
+              className="bg-[#748cab] hover:bg-[#3e5c76] text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 text-xl"
+            >
+              {minimalPairs['shortU_shortO'].name}
             </button>
             <button
               onClick={() => startNewSet('all')}
